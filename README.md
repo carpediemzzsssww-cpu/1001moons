@@ -1,6 +1,6 @@
 # 1001 States of the Moon · 月亮的一千零一种状态
 
-<img src="cover-xhs.png" width="360" alt="封面：1○●1，一个空的圆和一轮月亮">
+<img src="cover-xhs.png" width="360" alt="封面：一句话的句号，大得装下了整片夜空">
 
 > 今晚有一千零一种月亮。
 
