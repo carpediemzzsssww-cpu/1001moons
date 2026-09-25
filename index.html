@@ -22,6 +22,10 @@
   body{background:var(--room);color:var(--chalk);font:12px/1.6 "IBM Plex Mono",ui-monospace,Menlo,monospace;}
   .wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:22px 64px;display:flex;flex-direction:column;align-items:center;gap:16px}
   .stage{display:flex;justify-content:center;width:100%}
+  .frame{position:relative}
+  .start{position:absolute;left:50%;bottom:11%;transform:translateX(-50%);height:auto;padding:12px 22px;display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(11,11,13,.55);border-color:rgba(232,225,209,.35);font:500 14px/1.2 "Noto Serif SC","Songti SC",serif;letter-spacing:.2em;backdrop-filter:blur(4px)}
+  .start small{font:10px/1.2 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.14em;color:var(--dim)}
+  .start:hover{border-color:var(--chalk)}
   #plate{display:block;cursor:pointer;box-shadow:0 40px 90px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.035)}
   .bar{display:flex;align-items:center;gap:10px;width:100%;max-width:var(--w,880px)}
   button{font:inherit;color:var(--chalk);background:transparent;border:1px solid var(--line);height:30px;padding:0 12px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
@@ -64,7 +68,10 @@
 
 <main class="wrap">
   <div class="stage" id="stage">
-    <canvas id="plate" role="img" aria-label="动画：月亮的一千零一种状态，第一辑，中秋十五个月亮"></canvas>
+    <div class="frame">
+      <canvas id="plate" role="img" aria-label="动画：月亮的一千零一种状态，第一辑，中秋十五个月亮"></canvas>
+      <button id="start" class="start" hidden>▶ 观看 · 带声音<small>PLAY WITH SOUND · 1′38″</small></button>
+    </div>
   </div>
   <div class="index" id="index" hidden></div>
   <div class="bar" id="bar">
@@ -328,6 +335,9 @@ function initData() {
   // 夜空里的几颗亮星
   const nstars = [];
   while (nstars.length < 46) { const x = rnd(), y = .08 + rnd() * .74; if (Math.hypot(x - .5, y - .5) < RU * 1.6) continue; nstars.push({ x, y, sz: .0008 + rnd() * .0014, ph: rnd() * TAU, sp: 1 + rnd() * 2 }); }
+  // 句号里的星空（单位圆坐标）
+  const cstars = [];
+  while (cstars.length < 240) { const a = rnd() * TAU, r = Math.sqrt(rnd()) * .97; cstars.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, sz: .0015 + .004 * Math.pow(rnd(), 4), ph: rnd() * TAU, sp: .8 + rnd() * 2 }); }
   // 诗 → 月：竖排的格子，从右到左、从上到下
   const pcell = 2 * RU / PGRID, pcells = [];
   for (let gx = 9; gx >= -9; gx--) for (let gy = -9; gy <= 9; gy++) {
@@ -345,7 +355,7 @@ function initData() {
   // 柳条
   const willow = [];
   for (let k = 0; k < 7; k++) { const l = []; const x0 = -.95 + k * .13 + rnd() * .05, len = .7 + rnd() * .6; for (let i = 0; i < 9; i++) l.push({ t: i / 8, side: i % 2 ? 1 : -1, s: .8 + rnd() * .4 }); willow.push({ x0, len, sway: rnd() * TAU, leaves: l }); }
-  return { parts, G, stars, nstars, pcells, pcell, blk, crumbs, willow, s };
+  return { parts, G, stars, nstars, cstars, pcells, pcell, blk, crumbs, willow, s };
 }
 
 /* ============================================================
@@ -412,12 +422,12 @@ const FX = {
    通用绘制
    ============================================================ */
 function moonImg(ctx, img, e, r = e.R, x = e.C, y = e.C) { ctx.drawImage(img, x - r, y - r, 2 * r, 2 * r); }
-function nightMoon(ctx, e, x, y, r, a = 1) {
+function nightMoon(ctx, e, x, y, r, a = 1, img = FULL.night) {
   const g = ctx.createRadialGradient(x, y, r * .9, x, y, r * 3.3);
   const k = .2 * a * (1 + .06 * Math.sin(e.lt * 1.4));
   g.addColorStop(0, `rgba(255,236,200,${k})`); g.addColorStop(.3, `rgba(255,236,200,${k * .25})`); g.addColorStop(1, 'rgba(255,236,200,0)');
   ctx.fillStyle = g; ctx.fillRect(x - r * 3.4, y - r * 3.4, r * 6.8, r * 6.8);
-  ctx.globalAlpha = a; ctx.drawImage(FULL.night, x - r, y - r, 2 * r, 2 * r); ctx.globalAlpha = 1;
+  ctx.globalAlpha = a; ctx.drawImage(img, x - r, y - r, 2 * r, 2 * r); ctx.globalAlpha = 1;
 }
 const wob = (th, f) => 1 + .005 * Math.sin(3 * th + f * 1.7) + .003 * Math.sin(7 * th - f * 2.3);
 function penDot(ctx, x, y, e) { ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(x, y, 2.4 * e.u, 0, TAU); ctx.fill(); }
@@ -435,12 +445,15 @@ function varLine(ctx, pts, closed) {
 }
 function typeOn(ctx, str, n, x, y) { ctx.fillText(str.slice(0, n), x, y); }
 const LUNAR = (() => { const a = '一二三四五六七八九十'; const o = []; for (let d = 1; d <= 30; d++) o.push(d <= 10 ? '初' + a[d - 1] : d < 20 ? '十' + a[d - 11] : d === 20 ? '二十' : d < 30 ? '廿' + a[d - 21] : '三十'); return o; })();
-// 片头那句话里的句号「。」——整部片从它开始，也在它结束
-function titleLayout(ctx, S) {
-  const fs = S * .042, t = '今晚有一千零一种月亮';
-  ctx.font = ZH(500, fs); const w = ctx.measureText(t).width, full = w + fs * .62, x0 = S / 2 - full / 2, base = S / 2;
-  return { fs, t, w, x0, base, px: x0 + w + fs * .27, py: base - fs * .15, pr: fs * .12, pw: fs * .06 };
+// 开场那句话末尾的句号 —— 放大到底，里面是一整片夜空和一轮月亮
+function sentenceLayout(ctx, S) {
+  const fs = S * .054, t = 'There are a thousand and one moons tonight';
+  ctx.font = SERIF(fs); const w = ctx.measureText(t).width, pr = fs * .075, gap = fs * .05;
+  const x0 = S / 2 - (w + gap + 2 * pr) / 2, base = S * .5;
+  return { fs, t, w, x0, base, px: x0 + w + gap + pr, py: base - pr * 1.05, pr };
 }
+const Z0 = .34 / (.054 * .075 * .44);
+const coldZ = p => { const zs = Z0 * (1 + .1 * eout(seg(p, 0, .18))); return Math.exp(Math.log(zs) * (1 - eio(seg(p, .18, .62)))); };
 function periodRing(ctx, x, y, r, w, col = INK) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke(); }
 
 /* ============================================================
@@ -644,61 +657,94 @@ const OBJECTS = [
     moonGate(ctx, e, z, eio(seg(p, .84, 1)));
   }],
 ];
+const OBJ_LINES = { COIN: '先是一枚铜钱，', BUTTON: '一颗纽扣，', RECORD: '一张唱片，', PUPIL: '一只正在看月亮的眼睛，', YOLK: '一颗蛋黄，', ORANGE: '半个橙子，', CLOCK: '晚上八点，', LANTERN: '一盏灯笼，', MOONCAKE: '一块月饼。' };
 const objAt = p => { for (let i = 0; i < OBJECTS.length; i++) if (p < OBJECTS[i][3]) return i; return OBJECTS.length - 1; };
 
 const TITLE = {
-  num: 0, en: '15 Moons for Mid-Autumn', zh: '中秋十五个月亮', dur: 6, tl: 'CHAPTER 01', mat: '丙午年八月十五',
-  note: p => p < .4 ? '一个圆，还可以发生什么？' : '2026.09.25 · 中秋',
+  num: 0, en: 'Prologue', zh: '序', dur: 12, tl: 'CHAPTER 01', mat: '丙午年八月十五 · 中秋',
+  dark: p => coldZ(p) * .054 * .075 > .72,
+  hudA: p => Math.round(seg(p, .62, .72) * 4) / 4,
+  note: p => p < .9 ? '一切，从一个句号开始。' : '一个圆，还可以发生什么？',
   draw(ctx, e) {
-    const { S, C, p, f } = e;
-    ctx.textBaseline = 'alphabetic';
-    if (p < .38) {
-      const a = seg(p, .02, .08) * (1 - seg(p, .33, .37));
-      ctx.globalAlpha = Math.round(a * 4) / 4;
-      ctx.textAlign = 'center';
-      ctx.font = MONO(S * .015); ctx.fillStyle = GRAPH; track(ctx, S * .004); ctx.fillText('CHAPTER 01', C, C - S * .075); track(ctx, 0);
-      ctx.font = SERIF(S * .062); ctx.fillStyle = INK; ctx.fillText('What can happen to a circle?', C, C);
-      ctx.font = ZH(400, S * .022); ctx.fillStyle = GRAPH; ctx.fillText('一个圆，还可以发生什么？', C, C + S * .056);
-      ctx.textAlign = 'left'; ctx.globalAlpha = 1;
-      return;
+    const { S, C, p, lt, u } = e, L = sentenceLayout(ctx, S), Z = coldZ(p);
+    const g = clamp(Math.log(Z) / Math.log(Z0 * 1.1));
+    const Fx = L.px + (C - L.px) * g, Fy = L.py + (C - L.py) * g;
+    ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
+    // 句子（镜头拉远时才出现）
+    if (Z < 160) {
+      const k0 = p < .9 ? 0 : Math.floor(seg(p, .9, .98) * L.t.length);
+      ctx.save(); ctx.translate(Fx - L.px * Z, Fy - L.py * Z); ctx.scale(Z, Z);
+      ctx.font = SERIF(L.fs); ctx.fillStyle = INK;
+      const off = k0 ? ctx.measureText(L.t.slice(0, k0)).width : 0;
+      ctx.fillText(L.t.slice(k0), L.x0 + off, L.base);
+      ctx.restore();
     }
-    const L = titleLayout(ctx, S);
-    const n1 = p < .84 ? Math.floor(seg(p, .4, .6) * 10) : 10 - Math.floor(seg(p, .84, .95) * 10);
-    ctx.fillStyle = INK; typeOn(ctx, L.t, n1, L.x0, L.base);
-    if (p >= .62) { const k = seg(p, .62, .66); periodRing(ctx, L.px, L.py, L.pr * (k < 1 ? eback(k) : 1), L.pw); }
-    const l2 = 'There are a thousand and one moons tonight.';
-    ctx.font = SERIF(S * .028); ctx.fillStyle = GRAPH; const w2 = ctx.measureText(l2).width;
-    const n2 = p < .84 ? Math.floor(seg(p, .64, .8) * l2.length) : Math.floor((1 - seg(p, .84, .92)) * l2.length);
-    typeOn(ctx, l2, n2, C - w2 / 2, C + S * .058);
-    if (p > .38 && p < .62 && n1 < 10 && e.F % 12 < 7) { ctx.font = ZH(500, L.fs); const cw = ctx.measureText(L.t.slice(0, n1)).width; ctx.fillStyle = INK; ctx.fillRect(L.x0 + cw + 2, L.base - L.fs * .85, 1.5 * e.u, L.fs); }
+    // 句号：里面是夜空
+    const rd = L.pr * Z;
+    if (rd < 6) { ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(Fx, Fy, rd, 0, TAU); ctx.fill(); }
+    else {
+      ctx.save(); ctx.beginPath(); ctx.arc(Fx, Fy, rd, 0, TAU); ctx.clip();
+      const sky = ctx.createRadialGradient(Fx, Fy - rd * .15, 0, Fx, Fy, rd);
+      sky.addColorStop(0, '#1B1D25'); sky.addColorStop(.7, '#0E0F13'); sky.addColorStop(1, rd < S * .2 ? INK : NIGHT);
+      ctx.fillStyle = sky; ctx.fillRect(Fx - rd, Fy - rd, 2 * rd, 2 * rd);
+      for (const s of DATA.cstars) {
+        const a = .35 + .4 * Math.sin(lt * s.sp + s.ph);
+        ctx.fillStyle = `rgba(240,232,215,${a})`; ctx.beginPath(); ctx.arc(Fx + s.x * rd, Fy + s.y * rd, Math.max(.35, s.sz * rd), 0, TAU); ctx.fill();
+      }
+      const rm = rd * .44, phi = 1.25 * (1 - eio(seg(p, .04, .56)));
+      if (rm > 1) nightMoon(ctx, e, Fx, Fy, rm, 1, rm > 30 && phi > .005 ? shadeMoon(phi, STYLE_NIGHT, M.D) : FULL.night);
+      ctx.restore();
+    }
+    // 中文 + 章节
+    const fade = 1 - Math.round(seg(p, .9, .97) * 4) / 4;
+    if (p > .64 && fade > 0) {
+      const l2 = '今晚，有一千零一种月亮。';
+      ctx.globalAlpha = fade; ctx.font = ZH(400, S * .024); ctx.fillStyle = GRAPH;
+      const w2 = ctx.measureText(l2).width; typeOn(ctx, l2, Math.floor(seg(p, .64, .76) * l2.length), C - w2 / 2, L.base + S * .07);
+      if (p > .78) {
+        const l3 = 'CHAPTER 01 — WHAT CAN HAPPEN TO A CIRCLE?';
+        ctx.font = MONO(S * .014); track(ctx, S * .003); const w3 = ctx.measureText(l3).width;
+        typeOn(ctx, l3, Math.floor(seg(p, .78, .86) * l3.length), C - w3 / 2, L.base + S * .135); track(ctx, 0);
+      }
+      ctx.globalAlpha = 1;
+    }
   },
   sfx(p0, p1) {
-    if (X(p0, p1, .02)) FX.ping(440, .05, 2.4);
-    const n = p => p < .84 ? Math.floor(seg(p, .4, .6) * 10) : 10 - Math.floor(seg(p, .84, .95) * 10);
-    if (n(p0) !== n(p1)) FX.key();
-    if (X(p0, p1, .62)) FX.pop();
-    const m = p => Math.floor(seg(p, .64, .8) * 43 / 3);
-    if (m(p0) !== m(p1) && p1 < .81) FX.key(.03);
+    if (X(p0, p1, .005)) FX.pad(9, .05);
+    if (X(p0, p1, .18)) FX.whoosh(4.6, false, .09);
+    if (X(p0, p1, .6)) FX.ping(1318.5, .05, 2.4);
+    const n = p => Math.floor(seg(p, .64, .76) * 12) + Math.floor(seg(p, .78, .86) * 14);
+    if (n(p0) !== n(p1)) FX.key(.035);
+    const k = p => Math.floor(seg(p, .9, .98) * 14);
+    if (k(p0) !== k(p1)) FX.key(.02);
   }
 };
 
 const STATES = [
-  { en: 'Circle', zh: '圆', dur: 3.4, mat: 'INK · 墨', note: () => '句号「。」，也是一个圆。',
+  { en: 'Circle', zh: '圆', dur: 3.8, mat: 'INK · 墨',
+    note: p => p < .3 ? '句号从句子里跳了出来。' : p < .64 ? '它越长越大，然后发现自己是空的。' : '一个空的圆。它想成为月亮。',
     draw(ctx, e) {
-      const { S, C, R, u, p, f } = e, L = titleLayout(ctx, S);
-      const pre = seg(p, 0, .12), b = eio(seg(p, .12, .58));
-      const x = lerp(L.px, C, b), y = lerp(L.py, C, b);
-      let r = L.pr * Math.pow(R / L.pr, b) * (1 - .18 * Math.sin(pre * Math.PI));
-      if (p > .58) r *= 1 + .045 * Math.sin((p - .58) * 26) * Math.exp(-(p - .58) * 9);
-      const w = lerp(L.pw, 2.6 * u, eio(seg(p, .12, .45)));
-      ctx.strokeStyle = INK; ctx.lineWidth = w; ctx.lineJoin = 'round';
-      ctx.beginPath();
-      for (let i = 0; i <= 180; i++) { const th = i / 180 * TAU, rr = r * (b > .3 ? wob(th, f) : 1); const px = x + rr * Math.cos(th), py = y + rr * Math.sin(th); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
-      ctx.closePath(); ctx.stroke();
+      const { S, C, R, u, p, f } = e, L = sentenceLayout(ctx, S);
+      let x, y, sx = 1, sy = 1;
+      if (p < .06) { const a = Math.sin(seg(p, 0, .06) * Math.PI); x = L.px; y = L.py + L.pr * .3 * a; sx = 1 + .3 * a; sy = 1 - .35 * a; }
+      else if (p < .3) { const j = seg(p, .06, .3), q = eio(j); x = lerp(L.px, C, q); y = lerp(L.py, C, q) - Math.sin(Math.PI * j) * S * .14; sx = .85; sy = 1.2; }
+      else { const a = Math.sin(seg(p, .3, .36) * Math.PI); x = C; y = C; sx = 1 + .35 * a; sy = 1 - .3 * a; }
+      const b = eio(seg(p, .34, .62));
+      let r = L.pr * Math.pow(R / L.pr, b);
+      if (p > .62) r *= 1 + .045 * Math.sin((p - .62) * 26) * Math.exp(-(p - .62) * 9);
+      const w = Math.min(2 * r, lerp(2 * r, 2.6 * u, eio(seg(p, .46, .68))));
+      ctx.save(); ctx.translate(x, y); ctx.scale(sx, sy); ctx.fillStyle = INK; ctx.strokeStyle = INK;
+      if (w >= 2 * r - .01) { ctx.beginPath(); ctx.arc(0, 0, r, 0, TAU); ctx.fill(); }
+      else {
+        ctx.lineWidth = w; ctx.beginPath();
+        for (let i = 0; i <= 180; i++) { const th = i / 180 * TAU, rr = (r - w / 2) * (b > .6 ? wob(th, f) : 1); i ? ctx.lineTo(rr * Math.cos(th), rr * Math.sin(th)) : ctx.moveTo(rr * Math.cos(th), rr * Math.sin(th)); }
+        ctx.closePath(); ctx.stroke();
+      }
+      ctx.restore();
     },
-    sfx(p0, p1) { if (X(p0, p1, .12)) FX.whoosh(.9, true, .1); if (X(p0, p1, .58)) FX.ping(660, .09, 1.6); } },
+    sfx(p0, p1) { if (X(p0, p1, .06)) tone({ f: 300, f2: 900, dur: .18, vol: .1, glide: .15 }); if (X(p0, p1, .3)) tone({ f: 260, f2: 120, dur: .12, vol: .16 }); if (X(p0, p1, .36)) FX.whoosh(1.1, true, .09); if (X(p0, p1, .66)) FX.ping(660, .08, 1.8); } },
   { en: 'Less & Less', zh: '越来越少', dur: 4.2, mat: 'GEOMETRY · 几何',
-    note: p => p < .06 ? '一个圆，有无数个顶点。' : p < .84 ? `还剩 ${lessN(p)} 个顶点。` : '下一帧。',
+    note: p => p < .06 ? '它先试着把自己变简单。' : p < .7 ? `还剩 ${lessN(p)} 个顶点。` : p < .84 ? '简单到只剩三个角。' : '下一帧，它第一次成了月亮。',
     draw(ctx, e) {
       const { C, R, u, p, f } = e;
       if (p >= .84) {
@@ -716,7 +762,7 @@ const STATES = [
     },
     sfx(p0, p1) { if (lessN(p0) !== lessN(p1) && p1 < .84) FX.blip(200 + 3000 / Math.sqrt(lessN(p1)), .03); if (X(p0, p1, .84)) { FX.ding(); FX.whoosh(.4, false, .08); } } },
   { en: 'Phase', zh: '月相', dur: 4.4, mat: 'LIGHT · 光',
-    note: p => { const d = Math.floor((14 + phiAt(p) / TAU * 29.53) % 29.53); return `农历${LUNAR[Math.min(29, d)]} · 一个月，压缩成四秒。`; },
+    note: p => { const d = Math.floor((14 + phiAt(p) / TAU * 29.53) % 29.53); return `农历${LUNAR[Math.min(29, d)]} · 做月亮，就得学会盈亏。`; },
     draw(ctx, e) {
       const phi = phiAt(e.p);
       if (phi < 1e-4 || phi > TAU - 1e-4) return moonImg(ctx, FULL.paper, e);
@@ -724,7 +770,7 @@ const STATES = [
     },
     sfx(p0, p1) { if (X(p0, p1, .12)) FX.whoosh(1.6, false, .06); if (X(p0, p1, .5)) FX.ping(220, .08, 2); if (X(p0, p1, .88)) FX.whoosh(1, true, .06); } },
   { en: 'Bite', zh: '一口', dur: 4.4, mat: 'APPETITE · 食欲',
-    note: p => { const n = BITES.filter(t => p >= t).length; return n === 0 ? '十五的月亮，完整的一个。' : p < .8 ? `农历${BITE_DAYS[n - 1]} · 有人咬了一口。` : '原来月亮是这样变瘦的。谁吃的？'; },
+    note: p => { const n = BITES.filter(t => p >= t).length; return n === 0 ? '可总有人想咬一口。' : p < .8 ? `农历${BITE_DAYS[n - 1]} · 又一口。` : '原来月亮是这样变瘦的。谁吃的？'; },
     draw(ctx, e) {
       const { C, R, S, u, p, dpr } = e, W = 2 * R + 4;
       if (p > .74) { ctx.save(); ctx.setLineDash([2 * u, 5 * u]); ctx.strokeStyle = 'rgba(27,26,23,.35)'; ctx.lineWidth = 1.2 * u; ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.stroke(); ctx.restore(); }
@@ -756,7 +802,7 @@ const STATES = [
     },
     sfx(p0, p1) { BITES.forEach(t => { if (X(p0, p1, t)) FX.chomp(); }); if (X(p0, p1, .82)) tone({ f: 520, f2: 780, dur: .25, vol: .08, glide: .2 }); } },
   { en: 'Dust', zh: '尘', dur: 4.6, mat: 'REGOLITH · 月壤',
-    note: p => p < .4 ? '剩下的碎屑，飘散成尘。' : '一种看不见的引力，把它们召回。',
+    note: p => p < .4 ? '剩下的它，碎成了尘。' : '可尘还记得自己的形状。',
     draw(ctx, e) {
       const { S, p, lt } = e;
       for (const q of DATA.parts) {
@@ -771,7 +817,7 @@ const STATES = [
     },
     sfx(p0, p1) { if (X(p0, p1, .08)) FX.hiss(1.4, .05); if (X(p0, p1, .4)) FX.whoosh(1.2, false, .08); if (X(p0, p1, .7)) FX.ping(990, .06, 1.8); } },
   { en: 'Sand', zh: '沙', dur: 4.6, mat: 'GRAVITY · 重力',
-    note: p => p < .8 ? '重力打开。从最底下那一粒开始，月亮落了一地。' : '沙丘慢慢化开。',
+    note: p => p < .8 ? '重力不记得。从最底下那一粒开始，它落了一地。' : '沙丘慢慢化成了水。',
     draw(ctx, e) {
       const { S, p, dur } = e, G = DATA.G, melt = eio(seg(p, .8, .98));
       for (const q of DATA.parts) {
@@ -789,7 +835,7 @@ const STATES = [
     },
     sfx(p0, p1) { if (X(p0, p1, .06)) FX.hiss(3.2, .08); if (X(p0, p1, .82)) FX.bloop(); } },
   { en: 'Ripple', zh: '涟漪', dur: 5, mat: 'WATER · 水',
-    note: p => p < .16 ? '一滩银色的水，缩成一滴。' : p < .36 ? '水往天上流。' : p < .8 ? '一圈，两圈，三十六圈。' : '波纹停下来的地方，是月亮。',
+    note: p => p < .16 ? '水缩成一滴。' : p < .36 ? '然后，水往天上流。' : p < .8 ? '一圈，两圈，三十六圈。' : '波纹停下来的地方，它又是月亮了。',
     draw(ctx, e) {
       const { S, C, R, u, p } = e, G = DATA.G * S;
       const a = eio(seg(p, 0, .16)), b = eio(seg(p, .16, .36));
@@ -814,7 +860,7 @@ const STATES = [
     },
     sfx(p0, p1) { if (X(p0, p1, .16)) FX.drip(); if (X(p0, p1, .36)) FX.plip(); if (X(p0, p1, .78)) FX.ping(523, .05, 2.2); } },
   { en: 'Unravel', zh: '拆线', dur: 4.6, mat: 'THREAD · 线',
-    note: p => p < .16 ? '三十六圈波纹，其实是同一根线。' : p < .9 ? '找到线头，轻轻一拉。' : '整颗月亮，变成桌上的一根线。',
+    note: p => p < .16 ? '三十六圈波纹，其实是同一根线。' : p < .9 ? '有人找到了线头。' : '它变成桌上的一根线。',
     draw(ctx, e) {
       const { S, C, R, u, p } = e, G = DATA.G * S;
       const w = eio(seg(p, 0, .14)), un = eio(seg(p, .16, .88)), rot = un * TAU * 2.2, drop = eio(seg(p, .9, 1));
@@ -836,7 +882,7 @@ const STATES = [
     },
     sfx(p0, p1) { if (X(p0, p1, .16)) { FX.pluck(196); FX.zip(3.2); } if (X(p0, p1, .5)) FX.pluck(247); if (X(p0, p1, .9)) FX.pluck(147); } },
   { en: 'Scribble', zh: '乱画', dur: 4.2, mat: 'CHAOS · 混沌',
-    note: p => p > .44 && p < .56 ? '月亮！' : p < .88 ? '混乱，月亮，混乱。' : '乱到最后，写成了一个字。',
+    note: p => p > .44 && p < .56 ? '月亮！' : p < .44 ? '线乱了。' : p < .88 ? '又乱了。' : '乱到最后，它写成了一个字。',
     draw(ctx, e) {
       const { S, C, R, u, p, f } = e, G = DATA.G * S;
       const tx = C + 9 * PCW * S, ty = C - 3 * PCH * S;
@@ -864,7 +910,7 @@ const STATES = [
     },
     sfx(p0, p1) { if (X(p0, p1, .04)) FX.scratch(1.1); if (X(p0, p1, .44)) FX.ding(); if (X(p0, p1, .56)) FX.scratch(.6); if (X(p0, p1, .9)) FX.key(.09); } },
   { en: 'Poem', zh: '诗', dur: 8.4, mat: 'POETRY · 诗',
-    note: p => p < .34 ? '明月几时有？苏轼，丙辰中秋，1076 年。' : p < .84 ? '九百五十年后，这首诗重新排成一轮月亮。' : '「月有阴晴圆缺」：最早的一份月亮状态清单。',
+    note: p => p < .34 ? '那个字，是一首诗的开头。苏轼，丙辰中秋，1076 年。' : p < .84 ? '九百五十年后，这首诗重新排成了它。' : '「月有阴晴圆缺」：它所有的状态，早就被写下了。',
     draw(ctx, e) {
       const { S, p, f } = e, cs = DATA.pcell * S, cells = DATA.pcells, n = cells.length, NP = POEM.length;
       const typed = 1 + Math.floor(seg(p, .02, .3) * (NP - 1));
@@ -892,7 +938,7 @@ const STATES = [
       if (X(p0, p1, .86)) FX.bell(392);
     } },
   { en: 'Resolution', zh: '分辨率', dur: 4.6, mat: 'PIXEL · 像素',
-    note: p => p < .8 ? '从 4K，到一个像素。' : '最后，只剩一个像素。',
+    note: p => p < .12 ? '后来，它住进了屏幕。' : p < .8 ? '越来越模糊。' : '最后，只剩一个像素。',
     draw(ctx, e) {
       const { S, C, R, p } = e;
       ctx.textBaseline = 'alphabetic';
@@ -913,7 +959,7 @@ const STATES = [
     },
     sfx(p0, p1) { if (X(p0, p1, .12)) FX.ding(); if (resIdx(p0) !== resIdx(p1) && p1 < .8) FX.blip(1600 - resIdx(p1) * 120, .04); if (X(p0, p1, .82)) tone({ f: 400, f2: 1600, dur: .3, vol: .05, type: 'square' }); } },
   { en: 'Loading', zh: '加载中', dur: 5.2, mat: 'WAITING · 等待',
-    note: p => p < .76 ? '正在加载今晚的月亮……' : '今晚的月亮，永远差一点才圆。',
+    note: p => p < .76 ? '它试着把自己重新加载出来。' : '99%。今晚的月亮，永远差一点才圆。',
     draw(ctx, e) {
       const { S, C, R, u, p, F } = e;
       const a = eio(seg(p, 0, .1)), b = eio(seg(p, .1, .16));
@@ -933,7 +979,7 @@ const STATES = [
     },
     sfx(p0, p1) { if (pctAt(p0) !== pctAt(p1) && pctAt(p1) < 99) FX.blip(800 + pctAt(p1) * 8, .025); if (X(p0, p1, .76)) FX.error(); if (X(p0, p1, .92)) FX.error(); } },
   { en: 'Negative', zh: '负形', dur: 6, mat: 'NOTHING · 无',
-    note: p => p < .3 ? '那一圈进度条，碎成了星星。' : p < .55 ? '满天的星，只空出一个圆。' : '没有画月亮。你还是看见了。',
+    note: p => p < .3 ? '进度条碎成了星星。' : p < .55 ? '星星给它空出一个位置。' : '它不在那里。你还是看见了它。',
     draw(ctx, e) {
       const { S, C, R, u, p } = e, st = DATA.stars;
       if (p < .04) { ctx.font = `400 ${S * .062}px "IBM Plex Mono", ui-monospace, monospace`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('99%', C, C); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; }
@@ -953,7 +999,7 @@ const STATES = [
     sfx(p0, p1) { if (X(p0, p1, .02)) FX.shatter(); if (X(p0, p1, .5)) FX.pad(6, .035); } },
   { en: 'Impostors', zh: '冒充者', dur: 8.4, mat: 'THINGS · 物',
     dark: p => p > .92,
-    note: p => { if (p < .05) return '月亮一直在假装自己是月亮。'; const o = OBJECTS[objAt(p)]; if (o[1] === 'MOON GATE' && p > .82) return '月洞门。原来那个圆，一直是一扇门。'; return `${o[0]} ${o[1]} · 同一个圆的位置。`; },
+    note: p => { if (p < .05) return '它开始假装成别的东西。'; const o = OBJECTS[objAt(p)]; if (o[1] === 'MOON GATE') return p < .84 ? '最后，它找到了一扇门。月洞门。' : '门后面——'; return OBJ_LINES[o[1]]; },
     draw(ctx, e) {
       const { p } = e;
       if (p < .05) { drawStars(ctx, e, DATA.stars.length, .42, Math.round((1 - seg(p, 0, .05)) * 4) / 4); return; }
@@ -969,25 +1015,26 @@ const STATES = [
       if (X(p0, p1, .84)) { FX.whoosh(1.4, true, .1); FX.pad(9, .06); }
     } },
   { en: 'Moon', zh: '月亮', dur: 12, dark: true, mat: 'MOON · 月',
-    note: p => p < .3 ? '十五的月亮。' : p < .62 ? '1001 不是数量，是一句承诺。' : '最后，月亮变回一个句号。',
+    note: p => p < .3 ? '是今晚的月亮。十五的月亮。' : p < .62 ? '1001 不是数量，是一句承诺。' : '它回到句子里，做回一个句号。',
     draw(ctx, e) {
       const { S, C, R, p, lt } = e;
       const sh = eio(seg(p, .62, .82));
-      for (const s of DATA.nstars) { const a = (.25 + .3 * Math.sin(lt * s.sp + s.ph)) * (1 - sh * .5); ctx.fillStyle = `rgba(240,232,215,${a})`; ctx.beginPath(); ctx.arc(s.x * S, s.y * S, s.sz * S, 0, TAU); ctx.fill(); }
-      const fs2 = S * lerp(.022, .03, sh), l1 = 'To be continued.', l2 = '我们永远没有把月亮看完';
-      ctx.font = ZH(400, fs2); const w2 = ctx.measureText(l2).width, x2 = C - (w2 + fs2 * .7) / 2;
-      const y1 = lerp(C + R + S * .085, C - S * .012, sh), y2 = lerp(C + R + S * .128, C + S * .044, sh);
-      const px = x2 + w2 + fs2 * .27, py = y2 - fs2 * .15;
-      const rr = R * Math.pow(fs2 * .14 / R, sh), mx = lerp(C, px, sh), my = lerp(C, py, sh);
+      for (const s of DATA.nstars) { const a = (.25 + .3 * Math.sin(lt * s.sp + s.ph)) * (1 - sh * .4); ctx.fillStyle = `rgba(240,232,215,${a})`; ctx.beginPath(); ctx.arc(s.x * S, s.y * S, s.sz * S, 0, TAU); ctx.fill(); }
+      const fs1 = S * lerp(.04, .062, sh), l1 = 'To be continued';
+      ctx.font = SERIF(fs1); const w1 = ctx.measureText(l1).width, prd = fs1 * .085, gap = fs1 * .05;
+      const x1 = C - (w1 + gap + 2 * prd) / 2, y1 = lerp(C + R + S * .09, C + S * .01, sh);
+      const px = x1 + w1 + gap + prd, py = y1 - prd * 1.05;
+      const rr = R * Math.pow(prd / R, sh), mx = lerp(C, px, sh), my = lerp(C, py, sh);
       nightMoon(ctx, e, mx, my, rr, 1);
-      const n1 = Math.floor(seg(p, .3, .4) * l1.length), n2 = Math.floor(seg(p, .44, .58) * l2.length);
       ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-      if (n1) { ctx.font = SERIF(S * lerp(.036, .05, sh)); ctx.fillStyle = '#E4DBC6'; const w = ctx.measureText(l1).width; typeOn(ctx, l1, n1, C - w / 2, y1); }
-      if (n2) { ctx.font = ZH(400, fs2); ctx.fillStyle = '#A39A89'; typeOn(ctx, l2, n2, x2, y2); }
+      const n1 = Math.floor(seg(p, .3, .4) * l1.length);
+      if (n1) { ctx.font = SERIF(fs1); ctx.fillStyle = '#E4DBC6'; typeOn(ctx, l1, n1, x1, y1); }
+      const l2 = '我们永远没有把月亮看完。', n2 = Math.floor(seg(p, .44, .58) * l2.length);
+      if (n2) { const fs2 = S * lerp(.021, .025, sh); ctx.font = ZH(400, fs2); ctx.fillStyle = '#A39A89'; const w2 = ctx.measureText(l2).width; typeOn(ctx, l2, n2, C - w2 / 2, y1 + lerp(S * .045, S * .07, sh)); }
     },
     sfx(p0, p1) {
       if (X(p0, p1, .3)) FX.roll();
-      const k = p => Math.floor(seg(p, .3, .4) * 16) + Math.floor(seg(p, .44, .58) * 11);
+      const k = p => Math.floor(seg(p, .3, .4) * 15) + Math.floor(seg(p, .44, .58) * 12);
       if (k(p0) !== k(p1)) FX.key(.035);
       if (X(p0, p1, .62)) FX.whoosh(2.4, false, .07);
       if (X(p0, p1, .82)) FX.ping(1760, .07, 2.4);
@@ -1025,16 +1072,17 @@ function drawPlate(ctx, S, st, p, f, F, lt, opts) {
   ctx.fillStyle = v; ctx.fillRect(0, 0, S, S);
   let pats = patterns.get(ctx); if (!pats) { pats = GRAIN.map(g => ctx.createPattern(g, 'repeat')); patterns.set(ctx, pats); }
   ctx.save(); ctx.translate((f * 37) % 220, (f * 53) % 220); ctx.fillStyle = pats[f % 3]; ctx.globalAlpha = dark ? .7 : 1; ctx.fillRect(-220, -220, S + 440, S + 440); ctx.restore();
-  if (opts.hud) hud(ctx, e, st, opts, dark);
+  const ha = st.hudA ? st.hudA(p) : 1;
+  if (opts.hud && ha > 0) hud(ctx, e, st, opts, dark, ha);
 }
 
-function hud(ctx, e, st, opts, dark) {
+function hud(ctx, e, st, opts, dark, A = 1) {
   const { S, p } = e, fg = dark ? '#E9E2D0' : INK, sub = dark ? '#8E877A' : GRAPH, m = S * .045;
   ctx.textBaseline = 'alphabetic';
-  ctx.strokeStyle = sub; ctx.globalAlpha = .55; ctx.lineWidth = 1;
+  ctx.strokeStyle = sub; ctx.globalAlpha = .55 * A; ctx.lineWidth = 1;
   const cm = S * .018, cl = S * .016;
   [[cm, cm, 1, 1], [S - cm, cm, -1, 1], [cm, S - cm, 1, -1], [S - cm, S - cm, -1, -1]].forEach(([x, y, dx, dy]) => { ctx.beginPath(); ctx.moveTo(x + dx * cl, y); ctx.lineTo(x, y); ctx.lineTo(x, y + dy * cl); ctx.stroke(); });
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha = A;
   const ms = Math.max(9, S * .0155);
   ctx.font = MONO(ms); ctx.fillStyle = fg; track(ctx, ms * .16);
   ctx.textAlign = 'left'; ctx.fillText(st.tl, m, m + ms * .7);
@@ -1053,7 +1101,7 @@ function hud(ctx, e, st, opts, dark) {
   ctx.font = SERIF(ns); ctx.fillStyle = fg; ctx.fillText(st.en, m - ns * .03, S - m - S * .034);
   const w = ctx.measureText(st.en).width;
   ctx.font = ZH(500, S * .024); ctx.fillText(st.zh, m + w + S * .014, S - m - S * .034);
-  ctx.font = ZH(400, Math.max(10, S * .0185)); ctx.fillStyle = sub; ctx.fillText(st.note(p), m, S - m);
+  ctx.font = ZH(400, Math.max(10, S * .0205)); ctx.fillStyle = sub; ctx.fillText(st.note(p), m, S - m);
   if (st.num === 15 && p > .86) {
     const k = Math.floor((p - .86) * st.dur * FPS / 2), sc = [1.3, 1.1, 1][Math.min(2, k)], sz = S * .058 * sc;
     const x = S - m - sz, y = m + ms * 1.9;
@@ -1064,6 +1112,7 @@ function hud(ctx, e, st, opts, dark) {
     ctx.fillStyle = NIGHT; for (let i = 0; i < 10; i++) ctx.fillRect(x + (r() > .5 ? 0 : sz - 1.4), y + r() * sz, 1.4, 1.6);
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
   }
+  ctx.globalAlpha = 1;
 }
 
 /* ============================================================
@@ -1075,7 +1124,7 @@ const locate = t => { for (let i = 0; i < SEQ.length; i++) if (t < STARTS[i] + S
 
 const canvas = document.getElementById('plate'), ctx = canvas.getContext('2d');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let S = 600, dpr = 1, t = 0, prevT = 0, playing = !reduce, mode = 'film', lastFrame = -1, last = performance.now(), tI = 0, lastIF = -1;
+let S = 600, dpr = 1, t = 0, prevT = 0, playing = false, mode = 'film', lastFrame = -1, last = performance.now(), tI = 0, lastIF = -1;
 const filmCache = {};
 
 function size() {
@@ -1113,11 +1162,12 @@ const segs = SEQ.map((s, k) => {
 function jump(k) { t = prevT = STARTS[Math.max(0, Math.min(SEQ.length - 1, k))] + .001; lastFrame = -1; if (mode !== 'film') setMode('film'); }
 
 const playBtn = document.getElementById('play');
-function setPlaying(v) { playing = v; if (playing && t >= TOTAL - .01) t = prevT = 0; playBtn.textContent = playing ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', playing ? '暂停' : '播放'); last = performance.now(); }
+function setPlaying(v) { playing = v; if (v) startBtn.hidden = true; if (playing && t >= TOTAL - .01) t = prevT = 0; playBtn.textContent = playing ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', playing ? '暂停' : '播放'); last = performance.now(); }
 playBtn.onclick = () => setPlaying(!playing);
 document.getElementById('restart').onclick = () => { t = prevT = 0; lastFrame = -1; setPlaying(true); if (mode !== 'film') setMode('film'); };
 canvas.onclick = () => setPlaying(!playing);
-const sndBtn = document.getElementById('snd');
+const sndBtn = document.getElementById('snd'), startBtn = document.getElementById('start');
+startBtn.onclick = ev => { ev.stopPropagation(); setSound(true); startBtn.hidden = true; setPlaying(true); };
 function setSound(v) {
   if (v && !sndInit()) return;
   SND.on = v; sndBtn.setAttribute('aria-pressed', v);
@@ -1216,12 +1266,13 @@ async function boot() {
   const q = new URLSearchParams(location.search); if (q.has('t')) { t = +q.get('t'); playing = false; }
   prevT = t;
   setPlaying(playing);
+  if (!playing) startBtn.hidden = false;
   last = performance.now(); requestAnimationFrame(loop);
 }
 let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { size(); if (!DATA) splash('DEVELOPING THE PLATE · 显影中'); }, 120); });
 // 浏览器要求用户先点一下才能出声；第一次点画面时顺带打开声音
 let sndPref = null; try { sndPref = localStorage.getItem('moon-sound'); } catch (e) {}
-if (sndPref !== '0') addEventListener('pointerdown', function once(ev) { if (ev.target === sndBtn) return; removeEventListener('pointerdown', once); if (!SND.on) setSound(true); });
+if (sndPref !== '0') addEventListener('pointerdown', function once(ev) { if (ev.target === sndBtn || ev.target === startBtn) return; removeEventListener('pointerdown', once); if (!SND.on) setSound(true); });
 boot();
 })();
 </script>
