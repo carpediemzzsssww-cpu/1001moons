@@ -1,5 +1,7 @@
 # 1001 States of the Moon · 月亮的一千零一种状态
 
+<img src="cover-xhs.png" width="360" alt="封面：1○●1，一个空的圆和一轮月亮">
+
 > 今晚有一千零一种月亮。
 
 第一辑 **中秋十五个月亮**（丙午年八月十五 · 2026.09.25）。线上：https://1001moons.vercel.app
@@ -40,6 +42,7 @@
   - IM FELL English SC：标签与状态名
   - Compagnon：开场句子、To be continued、时间码
 - 月面程序生成：月海按真实月面经纬度布置，第谷辐射纹，Lommel–Seeliger 光照
+- 封面（3:4，1242×1656）：`cover-xhs.png`，在线打开 `/?cover` 可重新生成
 - Film / Index 两种模式；空格播放暂停，← → 切换，I 图鉴；`#10` 直接跳到第 10 种
 
 15 / 1001 — TO BE CONTINUED.
