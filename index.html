@@ -70,7 +70,7 @@
   <div class="stage" id="stage">
     <div class="frame">
       <canvas id="plate" role="img" aria-label="动画：月亮的一千零一种状态，第一辑，中秋十五个月亮"></canvas>
-      <button id="start" class="start" hidden>▶ 观看 · 带声音<small>PLAY WITH SOUND · 1′38″</small></button>
+      <button id="start" class="start" hidden>▶ 观看 · 带声音<small>PLAY WITH SOUND · 1′36″ · 建议戴耳机</small></button>
     </div>
   </div>
   <div class="index" id="index" hidden></div>
@@ -691,6 +691,14 @@ const TITLE = {
         const a = .35 + .4 * Math.sin(lt * s.sp + s.ph);
         ctx.fillStyle = `rgba(240,232,215,${a})`; ctx.beginPath(); ctx.arc(Fx + s.x * rd, Fy + s.y * rd, Math.max(.35, s.sz * rd), 0, TAU); ctx.fill();
       }
+      const sq = seg(p, .05, .12);
+      if (sq > 0 && sq < 1) {
+        const x0 = Fx - rd * .62, y0 = Fy - rd * .5, x1 = Fx + rd * .05, y1 = Fy - rd * .12, h = eout(sq), tl = Math.max(0, h - .35);
+        const gx = ctx.createLinearGradient(lerp(x0, x1, tl), lerp(y0, y1, tl), lerp(x0, x1, h), lerp(y0, y1, h));
+        gx.addColorStop(0, 'rgba(255,245,225,0)'); gx.addColorStop(1, `rgba(255,245,225,${.9 * (1 - sq)})`);
+        ctx.strokeStyle = gx; ctx.lineWidth = Math.max(1, rd * .004); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(lerp(x0, x1, tl), lerp(y0, y1, tl)); ctx.lineTo(lerp(x0, x1, h), lerp(y0, y1, h)); ctx.stroke();
+      }
       const rm = rd * .44, phi = 1.25 * (1 - eio(seg(p, .04, .56)));
       if (rm > 1) nightMoon(ctx, e, Fx, Fy, rm, 1, rm > 30 && phi > .005 ? shadeMoon(phi, STYLE_NIGHT, M.D) : FULL.night);
       ctx.restore();
@@ -710,7 +718,7 @@ const TITLE = {
     }
   },
   sfx(p0, p1) {
-    if (X(p0, p1, .005)) FX.pad(9, .05);
+    if (X(p0, p1, .05)) FX.ping(2637, .025, 1.6);
     if (X(p0, p1, .18)) FX.whoosh(4.6, false, .09);
     if (X(p0, p1, .6)) FX.ping(1318.5, .05, 2.4);
     const n = p => Math.floor(seg(p, .64, .76) * 12) + Math.floor(seg(p, .78, .86) * 14);
@@ -749,7 +757,7 @@ const STATES = [
       const { C, R, u, p, f } = e;
       if (p >= .84) {
         const k = seg(p, .84, .9);
-        moonImg(ctx, FULL.paper, e, R * (k < 1 ? eback(k) * .1 + .9 : 1));
+        lift(ctx, e, () => moonImg(ctx, FULL.paper, e, R * (k < 1 ? eback(k) * .1 + .9 : 1)));
         if (k < 1) { ctx.strokeStyle = `rgba(255,255,255,${1 - k})`; ctx.lineWidth = 8 * u * (1 - k); ctx.beginPath(); ctx.arc(C, C, R * (1 + k * .4), 0, TAU); ctx.stroke(); }
         return;
       }
@@ -765,8 +773,8 @@ const STATES = [
     note: p => { const d = Math.floor((14 + phiAt(p) / TAU * 29.53) % 29.53); return `农历${LUNAR[Math.min(29, d)]} · 做月亮，就得学会盈亏。`; },
     draw(ctx, e) {
       const phi = phiAt(e.p);
-      if (phi < 1e-4 || phi > TAU - 1e-4) return moonImg(ctx, FULL.paper, e);
-      moonImg(ctx, shadeMoon(phi, STYLE_PAPER, 2 * e.R * e.dpr), e);
+      const img = phi < 1e-4 || phi > TAU - 1e-4 ? FULL.paper : shadeMoon(phi, STYLE_PAPER, 2 * e.R * e.dpr);
+      lift(ctx, e, () => moonImg(ctx, img, e));
     },
     sfx(p0, p1) { if (X(p0, p1, .12)) FX.whoosh(1.6, false, .06); if (X(p0, p1, .5)) FX.ping(220, .08, 2); if (X(p0, p1, .88)) FX.whoosh(1, true, .06); } },
   { en: 'Bite', zh: '一口', dur: 4.4, mat: 'APPETITE · 食欲',
@@ -789,7 +797,7 @@ const STATES = [
       });
       x.globalCompositeOperation = 'source-over';
       const chomp = BITES.some(t => p >= t && (p - t) * e.dur < .1) ? .975 : 1;
-      ctx.drawImage(tmp, C - (R + 2) * chomp, C - (R + 2) * chomp, W * chomp, W * chomp);
+      lift(ctx, e, () => ctx.drawImage(tmp, C - (R + 2) * chomp, C - (R + 2) * chomp, W * chomp, W * chomp), chomp < 1 ? .6 : 1);
       ctx.fillStyle = '#CFCAC0';
       for (const c of DATA.crumbs) {
         const t0 = BITES[c.k]; if (p < t0) continue;
@@ -934,7 +942,6 @@ const STATES = [
       const t = p => Math.floor(seg(p, .02, .3) * 94 / 3);
       if (t(p0) !== t(p1)) FX.key(.04);
       if (X(p0, p1, .36)) FX.whoosh(2.2, true, .06);
-      if (X(p0, p1, .66)) FX.pad(4, .03);
       if (X(p0, p1, .86)) FX.bell(392);
     } },
   { en: 'Resolution', zh: '分辨率', dur: 4.6, mat: 'PIXEL · 像素',
@@ -947,8 +954,8 @@ const STATES = [
         for (const c of DATA.pcells) { ctx.fillStyle = c.ink; ctx.fillRect(c.x * S - cs / 2, c.y * S - cs / 2, cs + .5, cs + .5); }
       } else if (p < .8) {
         const n = RES[resIdx(p)][1];
-        if (!n) moonImg(ctx, FULL.paper, e);
-        else { ctx.imageSmoothingEnabled = false; moonImg(ctx, pixelated(n), e); ctx.imageSmoothingEnabled = true; }
+        if (!n) lift(ctx, e, () => moonImg(ctx, FULL.paper, e));
+        else { ctx.imageSmoothingEnabled = false; lift(ctx, e, () => moonImg(ctx, pixelated(n), e), .7); ctx.imageSmoothingEnabled = true; }
       } else {
         const sz = lerp(2 * R, S * .018, eio(seg(p, .82, .95)));
         ctx.fillStyle = pixelated(1)._avg; ctx.fillRect(C - sz / 2, C - sz / 2, sz, sz);
@@ -996,7 +1003,7 @@ const STATES = [
       drawStars(ctx, e, NRING, trail, 1, NRING - landed);
       drawStars(ctx, e, NRING + Math.floor((st.length - NRING) * eio(seg(p, .2, .52))), trail, 1, NRING);
     },
-    sfx(p0, p1) { if (X(p0, p1, .02)) FX.shatter(); if (X(p0, p1, .5)) FX.pad(6, .035); } },
+    sfx(p0, p1) { if (X(p0, p1, .02)) FX.shatter(); } },
   { en: 'Impostors', zh: '冒充者', dur: 8.4, mat: 'THINGS · 物',
     dark: p => p > .92,
     note: p => { if (p < .05) return '它开始假装成别的东西。'; const o = OBJECTS[objAt(p)]; if (o[1] === 'MOON GATE') return p < .84 ? '最后，它找到了一扇门。月洞门。' : '门后面——'; return OBJ_LINES[o[1]]; },
@@ -1005,14 +1012,20 @@ const STATES = [
       if (p < .05) { drawStars(ctx, e, DATA.stars.length, .42, Math.round((1 - seg(p, 0, .05)) * 4) / 4); return; }
       const i = objAt(p), o = OBJECTS[i];
       const sub = Object.assign({}, e, { lt: (p - o[2]) * e.dur });
-      o[4](ctx, sub, seg(p, o[2], o[3]), p);
+      if (o[1] === 'MOON GATE') { o[4](ctx, sub, seg(p, o[2], o[3]), p); return; }
+      // 物体先画到一张透明纸上，再整体投影
+      const key = '_obj' + Math.round(e.S * e.dpr), off = e.cache[key] || (e.cache[key] = mk(e.S * e.dpr)), ox = off.getContext('2d');
+      ox.setTransform(1, 0, 0, 1, 0, 0); ox.clearRect(0, 0, off.width, off.height); ox.setTransform(e.dpr, 0, 0, e.dpr, 0, 0);
+      o[4](ox, sub, seg(p, o[2], o[3]), p);
+      const q = seg(p, o[2], o[3]), air = i === 0 ? 1 - ebounce(seg(q, 0, .7)) : 0;
+      lift(ctx, e, () => ctx.drawImage(off, 0, 0, e.S, e.S), 1 + air * 1.5);
     },
     sfx(p0, p1) {
       const o = OBJECTS;
       for (let i = 1; i < o.length; i++) if (X(p0, p1, o[i][2])) FX.click();
       [.05 + .13 * .7 * .36, .05 + .13 * .7 * .73, .05 + .13 * .7 * .91].forEach((t, k) => { if (X(p0, p1, t)) FX.clink(.12 / (k + 1)); });
       if (X(p0, p1, .25)) FX.crackle(.6);
-      if (X(p0, p1, .84)) { FX.whoosh(1.4, true, .1); FX.pad(9, .06); }
+      if (X(p0, p1, .84)) FX.whoosh(1.4, true, .1);
     } },
   { en: 'Moon', zh: '月亮', dur: 12, dark: true, mat: 'MOON · 月',
     note: p => p < .3 ? '是今晚的月亮。十五的月亮。' : p < .62 ? '1001 不是数量，是一句承诺。' : '它回到句子里，做回一个句号。',
@@ -1055,6 +1068,31 @@ const GRAIN = [0, 1, 2].map(s => {
   return c;
 });
 const patterns = new WeakMap();
+// 厚纸的斑驳：低频噪声，整张铺开，不重复
+let MOTTLE = null;
+function mottle() {
+  if (MOTTLE) return MOTTLE;
+  const n = 384, c = mk(n), x = c.getContext('2d'), img = x.createImageData(n, n), d = img.data;
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const v = fbm(i / 55, j / 55, 7.7, 4), w = vnoise(i / 9, j / 9, 2.2), o = (j * n + i) * 4;
+    d[o] = 112; d[o + 1] = 86; d[o + 2] = 52; d[o + 3] = 255 * clamp((v - .42) * .32 + (w - .5) * .03);
+  }
+  x.putImageData(img, 0, 0); return (MOTTLE = c);
+}
+function filmDirt(ctx, S, f, dark) {
+  const r = mulberry(f * 131 + 17), col = dark ? '235,225,205' : '45,35,22';
+  const n = 1 + Math.floor(r() * 5);
+  for (let i = 0; i < n; i++) { const x = r() * S, y = r() * S, a = (.4 + r() * 1.6) * S / 900; ctx.fillStyle = `rgba(${col},${.12 + r() * .3})`; ctx.beginPath(); ctx.ellipse(x, y, a, a * (.5 + r()), r() * 3, 0, TAU); ctx.fill(); }
+  if (r() < .14) { const x = r() * S; ctx.strokeStyle = `rgba(${col},${.05 + r() * .06})`; ctx.lineWidth = .7; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + (r() - .5) * 8, S); ctx.stroke(); }
+  if (r() < .05) { const x = r() * S, y = r() * S, l = S * .03; ctx.strokeStyle = `rgba(${col},.22)`; ctx.lineWidth = .6; ctx.beginPath(); ctx.moveTo(x, y); ctx.bezierCurveTo(x + l, y - l * .4, x + l * .2, y + l, x + l * 1.3, y + l * .8); ctx.stroke(); }
+}
+// 纸上的东西都「立」起来一点：暖色的柔和投影，像桌面上的剪纸
+function lift(ctx, e, fn, k = 1) {
+  ctx.save();
+  ctx.shadowColor = 'rgba(78,56,30,.34)'; ctx.shadowBlur = e.S * .02 * k * e.dpr;
+  ctx.shadowOffsetX = e.S * .004 * k * e.dpr; ctx.shadowOffsetY = e.S * .013 * k * e.dpr;
+  fn(); ctx.restore();
+}
 const isDark = (st, p) => typeof st.dark === 'function' ? st.dark(p) : !!st.dark;
 
 function drawPlate(ctx, S, st, p, f, F, lt, opts) {
@@ -1067,15 +1105,25 @@ function drawPlate(ctx, S, st, p, f, F, lt, opts) {
   ctx.translate(-e.C + (hash(f * 3.1) - .5) * S * .002, -e.C + (hash(f * 5.3) - .5) * S * .002);
   st.draw(ctx, e);
   ctx.restore();
+  if (!dark) {
+    ctx.globalAlpha = .9; ctx.drawImage(mottle(), 0, 0, S, S); ctx.globalAlpha = 1;
+    const kl = ctx.createRadialGradient(S * .3, S * .2, 0, S * .3, S * .2, S * .95);
+    kl.addColorStop(0, 'rgba(255,240,212,.2)'); kl.addColorStop(1, 'rgba(255,240,212,0)');
+    ctx.fillStyle = kl; ctx.fillRect(0, 0, S, S);
+  }
+  const fl = (hash(f * 9.1) - .5) * .035;
+  ctx.fillStyle = fl > 0 ? `rgba(255,246,228,${fl})` : `rgba(30,20,10,${-fl * .7})`; ctx.fillRect(0, 0, S, S);
   const v = ctx.createRadialGradient(e.C, e.C, S * .3, e.C, e.C, S * .78);
-  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, dark ? 'rgba(0,0,0,.4)' : 'rgba(90,70,40,.1)');
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, dark ? 'rgba(0,0,0,.45)' : 'rgba(80,55,25,.17)');
   ctx.fillStyle = v; ctx.fillRect(0, 0, S, S);
   let pats = patterns.get(ctx); if (!pats) { pats = GRAIN.map(g => ctx.createPattern(g, 'repeat')); patterns.set(ctx, pats); }
   ctx.save(); ctx.translate((f * 37) % 220, (f * 53) % 220); ctx.fillStyle = pats[f % 3]; ctx.globalAlpha = dark ? .7 : 1; ctx.fillRect(-220, -220, S + 440, S + 440); ctx.restore();
+  filmDirt(ctx, S, f, dark);
   const ha = st.hudA ? st.hudA(p) : 1;
   if (opts.hud && ha > 0) hud(ctx, e, st, opts, dark, ha);
 }
 
+const ACTS = [[1, 3, 'ACT I', '成为', 'BECOMING'], [4, 6, 'ACT II', '失去', 'LOSING'], [7, 12, 'ACT III', '寻找', 'SEARCHING'], [13, 15, 'ACT IV', '回家', 'HOME']];
 function hud(ctx, e, st, opts, dark, A = 1) {
   const { S, p } = e, fg = dark ? '#E9E2D0' : INK, sub = dark ? '#8E877A' : GRAPH, m = S * .045;
   ctx.textBaseline = 'alphabetic';
@@ -1101,7 +1149,13 @@ function hud(ctx, e, st, opts, dark, A = 1) {
   ctx.font = SERIF(ns); ctx.fillStyle = fg; ctx.fillText(st.en, m - ns * .03, S - m - S * .034);
   const w = ctx.measureText(st.en).width;
   ctx.font = ZH(500, S * .024); ctx.fillText(st.zh, m + w + S * .014, S - m - S * .034);
-  ctx.font = ZH(400, Math.max(10, S * .0205)); ctx.fillStyle = sub; ctx.fillText(st.note(p), m, S - m);
+  const note = st.note(p), cc = opts.cache;
+  if (cc.sub !== note) { cc.sub = note; cc.subT = Math.abs(opts.tc - (cc.lastTc ?? -9)) > .2 ? -99 : opts.tc; }
+  cc.lastTc = opts.tc;
+  const nt = opts.tc < cc.subT ? note.length : Math.floor((opts.tc - cc.subT) * 26) + 1;
+  ctx.font = ZH(400, Math.max(10, S * .0205)); ctx.fillStyle = sub; ctx.fillText(note.slice(0, nt), m, S - m);
+  const act = ACTS.find(a => st.num >= a[0] && st.num <= a[1]);
+  if (act) { ctx.font = MONO(ms * .8); track(ctx, ms * .25); ctx.textAlign = 'center'; ctx.fillStyle = sub; ctx.fillText(`${act[2]} · ${act[4]}`, S / 2, m + ms * .7); ctx.font = ZH(500, ms * .95); track(ctx, ms * .5); ctx.fillStyle = fg; ctx.fillText(act[3], S / 2, m + ms * 2.5); track(ctx, 0); ctx.textAlign = 'left'; }
   if (st.num === 15 && p > .86) {
     const k = Math.floor((p - .86) * st.dur * FPS / 2), sc = [1.3, 1.1, 1][Math.min(2, k)], sz = S * .058 * sc;
     const x = S - m - sz, y = m + ms * 1.9;
@@ -1121,6 +1175,134 @@ function hud(ctx, e, st, opts, dark, A = 1) {
 const SEQ = [TITLE, ...STATES];
 const STARTS = []; let TOTAL = 0; SEQ.forEach(s => { STARTS.push(TOTAL); TOTAL += s.dur; });
 const locate = t => { for (let i = 0; i < SEQ.length; i++) if (t < STARTS[i] + SEQ[i].dur) return { i, lt: t - STARTS[i], p: (t - STARTS[i]) / SEQ[i].dur }; const i = SEQ.length - 1; return { i, lt: SEQ[i].dur, p: 1 }; };
+
+/* ============================================================
+   配乐：一首 3/4 拍的小圆舞曲（D 大调，120 BPM），全部实时合成
+   同一个 16 小节主题贯穿全片，乐器跟着故事换：
+   音乐盒（序）→ 钢琴圆舞曲（成为）→ 竖琴与长笛（寻找）→ 古筝（诗）
+   → 8-bit（屏幕）→ 跳针（99%）→ 弦乐（回家）
+   ============================================================ */
+const BEAT = .5, BAR = 1.5, THEME0 = 5;
+const midi = m => 440 * Math.pow(2, (m - 69) / 12);
+const CH = { D: [38, [62, 66, 69, 73]], Bm: [35, [59, 62, 66, 69]], G: [43, [59, 62, 67, 66]], A: [45, [61, 64, 69, 73]], DF: [42, [62, 66, 69, 57]], Em: [40, [59, 62, 64, 67]], A7: [45, [61, 64, 67, 69]] };
+const PROG = ['D','Bm','G','A','DF','Em','G','A','D','Bm','G','A','G','DF','A7','D'];
+const THEME = [
+  [[69,0,1],[74,1,1],[78,2,1]], [[76,0,2],[74,2,1]], [[71,0,1],[74,1,1],[79,2,1]], [[78,0,2],[76,2,1]],
+  [[69,0,1],[74,1,1],[78,2,1]], [[81,0,2],[79,2,1]], [[78,0,1],[76,1,1],[74,2,1]], [[76,0,3]],
+  [[69,0,1],[74,1,1],[78,2,1]], [[83,0,2],[81,2,1]], [[79,0,1],[78,1,1],[76,2,1]], [[78,0,2],[69,2,1]],
+  [[71,0,1],[74,1,1],[79,2,1]], [[78,0,1],[76,1,1],[74,2,1]], [[76,0,2],[73,2,1]], [[74,0,3]],
+];
+const PENTA = [57, 59, 62, 64, 66, 69, 71, 74, 76, 78, 81, 83, 86, 88, 90, 93];
+const pentaBelow = m => { let r = PENTA[0]; for (const x of PENTA) if (x < m) r = x; return r; };
+
+function compose() {
+  const ev = [], R = mulberry(2026);
+  const add = (t, i, o) => { if (t >= 0) ev.push(Object.assign({ t, i }, o)); };
+  const moonI = SEQ.length - 1, tHush = STARTS[moonI] + .62 * SEQ[moonI].dur, tFinal = STARTS[moonI] + .82 * SEQ[moonI].dur;
+  for (let k = 0; ; k++) {
+    const tb = k * BAR; if (tb > tHush) break;
+    const { i, p } = locate(tb + .01);
+    const tbar = ((k - THEME0) % 16 + 16) % 16, [root, tones] = CH[PROG[tbar]], mel = THEME[tbar];
+    const melody = (inst, v, oct = 0, o = {}) => mel.forEach(([m, b, l]) => add(tb + b * BEAT, inst, Object.assign({ m: m + oct, d: l * BEAT, v }, o)));
+    const waltz = (v = 1) => { add(tb, 'bass', { m: root, d: BEAT, v: .17 * v }); [1, 2].forEach(b => add(tb + b * BEAT, 'piano', { ms: tones.slice(0, 3), d: BEAT * .8, v: .032 * v, stac: 1 })); };
+    const pad = (v, ts = tones) => add(tb, 'pad', { ms: ts, d: BAR, v });
+    const arp = (v, up = 0) => { const q = [root + 12, ...tones.map(x => x - 12 + up), ...tones.map(x => x + up)]; for (let j = 0; j < 6; j++) add(tb + j * BEAT / 2, 'harp', { m: q[j % q.length], d: BEAT, v }); };
+    const sparkle = (n, v) => { for (let j = 0; j < n; j++) add(tb + Math.floor(R() * 6) * BEAT / 2, 'box', { m: tones[Math.floor(R() * tones.length)] + 24, d: BEAT, v }); };
+    switch (i) {
+      case 0: pad(.045 + .03 * p, k < THEME0 ? CH.D[1] : tones); if (k < THEME0) sparkle(2, .03); if (p > .16 && p < .64) arp(.045, Math.min(24, Math.floor(p * 4) * 12 - 12)); if (k >= THEME0) melody('box', .09); break;
+      case 1: pad(.04); melody('box', .1); add(tb, 'bass', { m: root, d: BEAT, v: .13 }); break;
+      case 2: waltz(); melody('piano', .1); break;
+      case 3: waltz(); melody('piano', .1); melody('box', .03, 12); break;
+      case 4: waltz(1.1); melody('piano', .11, 0, { stac: 1 }); break;
+      case 5: pad(.055); melody('box', .08); sparkle(2, .025); break;
+      case 6: pad(.05); melody('piano', .075); for (let b = 0; b < 3; b++) add(tb + b * BEAT, 'box', { m: PENTA[PENTA.length - 1 - (k * 3 + b) % PENTA.length], d: BEAT, v: .03 }); break;
+      case 7: case 8: pad(.04); arp(.055, 12); melody('flute', .065); break;
+      case 9: waltz(.9); melody('clar', .07, 0, { stac: 1 }); break;
+      case 10: pad(.07); arp(.022, 12); mel.forEach(([m, b, l]) => { add(tb + b * BEAT - .07, 'zheng', { m: pentaBelow(m) - 12, d: .1, v: .045 }); add(tb + b * BEAT, 'zheng', { m: m - 12, d: l * BEAT, v: .12 }); }); break;
+      case 11: melody('chip', .05 * (1 - resIdx(p) / 14)); add(tb, 'chip', { m: root + 12, d: BEAT, v: .025 }); break;
+      case 12: melody('chip', .06); add(tb, 'chip', { m: root + 12, d: BEAT, v: .03 }); break;
+      case 13: pad(.055, (k % 2 ? CH.G : CH.Bm)[1]); add(tb, 'box', { m: mel[0][0], d: BAR, v: .06 }); sparkle(1, .022); break;
+      case 14: if (p < .84) { waltz(1.1); melody('piano', .1); melody('box', .03, 12); } else { pad(.09); arp(.055, 12); melody('box', .06, 12); } break;
+      case 15: pad(.08); melody('piano', .11); melody('box', .04, 12); add(tb, 'bass', { m: root, d: BAR, v: .12 }); break;
+    }
+  }
+  // 99%：唱片跳针，同一小段一直重复
+  const li = SEQ.findIndex(s => s.en === 'Loading'), ts0 = STARTS[li] + .72 * SEQ[li].dur, te = STARTS[li + 1];
+  const out = ev.filter(e => !(e.t >= ts0 && e.t < te)), stuck = ev.filter(e => e.t >= ts0 - .5 && e.t < ts0);
+  for (let k = 1; ts0 - .5 + k * .5 < te; k++) stuck.forEach(e => { const tt = e.t + k * .5; if (tt < te) out.push(Object.assign({}, e, { t: tt, v: e.v * Math.pow(.88, k) })); });
+  // 月亮落回句号的那一刻
+  out.push({ t: tHush, i: 'pad', ms: [62, 66, 69, 73, 74], d: tFinal - tHush + 4.5, v: .06 });
+  [62, 69, 74, 78, 81, 86].forEach((m, j) => out.push({ t: tFinal + j * .08, i: 'harp', m, d: 2, v: .06 }));
+  out.push({ t: tFinal + .5, i: 'box', m: 86, d: 3, v: .12 });
+  out.push({ t: tFinal, i: 'bass', m: 38, d: 3, v: .15 });
+  // 黑胶的噼啪
+  for (let x = 0; x < TOTAL + 4; x += .12 + R() * .5) out.push({ t: x, i: 'crk', v: .008 + R() * .028 });
+  return out.sort((a, b) => a.t - b.t);
+}
+
+const MUS = { ev: null, ptr: 0, bus: null, a0: 0, t0: 0, on: false, wow: null };
+function voice(type, f, w, a, v, d, bus, lp = 0, o = {}) {
+  const ac = SND.ac, osc = ac.createOscillator(), g = ac.createGain();
+  osc.type = type;
+  if (o.bend) { osc.frequency.setValueAtTime(f * o.bend, w); osc.frequency.exponentialRampToValueAtTime(f, w + .07); } else osc.frequency.setValueAtTime(f, w);
+  if (o.cents) osc.detune.value = o.cents;
+  if (MUS.wow) MUS.wow.connect(osc.detune);
+  if (o.vib) { const l = ac.createOscillator(), lg = ac.createGain(); l.frequency.value = 5.2; lg.gain.value = o.vib; l.connect(lg); lg.connect(osc.detune); l.start(w); l.stop(w + a + d + .6); }
+  let node = osc;
+  if (lp) { const fl = ac.createBiquadFilter(); fl.type = 'lowpass'; fl.Q.value = .5; fl.frequency.setValueAtTime(lp, w); if (!o.sus) fl.frequency.exponentialRampToValueAtTime(Math.max(300, lp * .3), w + a + d); osc.connect(fl); node = fl; }
+  node.connect(g); g.connect(bus);
+  const rel = o.rel ?? .15;
+  if (o.lin) { g.gain.setValueAtTime(0, w); g.gain.linearRampToValueAtTime(v, w + a); g.gain.setValueAtTime(v, w + Math.max(a, d)); g.gain.linearRampToValueAtTime(0, w + Math.max(a, d) + rel); osc.start(w); osc.stop(w + Math.max(a, d) + rel + .1); return; }
+  g.gain.setValueAtTime(.0001, w); g.gain.exponentialRampToValueAtTime(v, w + a);
+  if (o.sus) { g.gain.setValueAtTime(v, w + a + Math.max(0, d - rel)); g.gain.exponentialRampToValueAtTime(.0001, w + a + d + rel); }
+  else g.gain.exponentialRampToValueAtTime(.0001, w + a + d);
+  osc.start(w); osc.stop(w + a + d + rel + .4);
+}
+const INST = {
+  box(e, w, b) { const f = midi(e.m), L = Math.min(2.4, (e.d || .5) + 1.1); [[1, 1, L], [2, .14, L * .45], [4.16, .06, L * .2]].forEach(([r, a, d]) => voice('sine', f * r, w, .002, e.v * a, d, b)); },
+  piano(e, w, b) { (e.ms || [e.m]).forEach((m, j) => { const f = midi(m), d = e.stac ? .38 : Math.max(1, e.d * 2); voice('triangle', f, w + j * .006, .004, e.v, d, b, 2600, { cents: (j - 1) * 3 }); voice('sine', f * 2, w, .003, e.v * .22, d * .45, b); }); },
+  pad(e, w, b) { const v = e.v / (e.ms.length * 1.4); e.ms.forEach(m => [-8, 7].forEach(c => voice('sawtooth', midi(m - 12), w, .7, v, e.d, b, 900, { lin: 1, rel: 1, cents: c, sus: 1 }))); },
+  bass(e, w, b) { const f = midi(e.m); voice('sine', f, w, .006, e.v, Math.max(.5, e.d * 1.3), b); voice('triangle', f * 2, w, .004, e.v * .22, .25, b, 900); },
+  harp(e, w, b) { const f = midi(e.m); voice('triangle', f, w, .002, e.v, 1.9, b, 3200); voice('sine', f * 2, w, .002, e.v * .18, .6, b); },
+  flute(e, w, b) { voice('sine', midi(e.m), w, .07, e.v, e.d + .2, b, 0, { vib: 7, sus: 1, rel: .25 }); voice('triangle', midi(e.m) * 2, w, .09, e.v * .08, e.d, b, 0, { sus: 1 }); },
+  clar(e, w, b) { voice('square', midi(e.m), w, .015, e.v * .45, e.stac ? .2 : e.d, b, 1300, { sus: 1, rel: .08 }); },
+  zheng(e, w, b) { const f = midi(e.m); voice('triangle', f, w, .002, e.v, 2.4, b, 2800, { bend: .96 }); voice('sine', f * 2, w, .002, e.v * .28, .9, b, 0, { bend: .96 }); voice('sine', f * 3.01, w, .001, e.v * .08, .3, b); },
+  chip(e, w, b) { voice('square', midi(e.m), w, .001, e.v * .75, e.d * .85, b, 0, { sus: 1, rel: .02 }); },
+  crk(e, w, b) { const ac = SND.ac, src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain(); src.buffer = SND.nb; f.type = 'bandpass'; f.frequency.value = 1500 + Math.random() * 4500; f.Q.value = 2; g.gain.setValueAtTime(e.v, w); g.gain.exponentialRampToValueAtTime(.0001, w + .012); src.connect(f); f.connect(g); g.connect(b); src.start(w, Math.random() * 1.5); src.stop(w + .03); },
+};
+function musicStart(ft) {
+  if (!SND.on || !SND.ac) return;
+  musicStop(.04);
+  const ac = SND.ac; if (!MUS.ev) MUS.ev = compose();
+  const bus = ac.createGain(), warm = ac.createBiquadFilter();
+  warm.type = 'lowpass'; warm.frequency.value = 6200;
+  bus.gain.setValueAtTime(.0001, ac.currentTime); bus.gain.exponentialRampToValueAtTime(1.15, ac.currentTime + .3);
+  bus.connect(warm); warm.connect(SND.master);
+  // 磁带的轻微走音
+  const wow = ac.createOscillator(), wg = ac.createGain(); wow.frequency.value = .5; wg.gain.value = 6; wow.connect(wg); wow.start();
+  // 黑胶底噪
+  const hiss = ac.createBufferSource(), hf = ac.createBiquadFilter(), hg = ac.createGain();
+  hiss.buffer = SND.nb; hiss.loop = true; hf.type = 'bandpass'; hf.frequency.value = 3200; hf.Q.value = .4; hg.gain.value = .01;
+  hiss.connect(hf); hf.connect(hg); hg.connect(bus); hiss.start();
+  Object.assign(MUS, { bus, wow: wg, wowOsc: wow, hiss, a0: ac.currentTime + .08, t0: ft, on: true });
+  MUS.ptr = MUS.ev.findIndex(e => e.t >= ft); if (MUS.ptr < 0) MUS.ptr = MUS.ev.length;
+}
+function musicStop(tau = .06) {
+  if (!MUS.on) return;
+  const ac = SND.ac, { bus, wowOsc, hiss } = MUS;
+  bus.gain.cancelScheduledValues(ac.currentTime); bus.gain.setTargetAtTime(.0001, ac.currentTime, tau);
+  setTimeout(() => { try { hiss.stop(); wowOsc.stop(); bus.disconnect(); } catch (e) {} }, tau * 8000 + 200);
+  MUS.on = false; MUS.wow = null;
+}
+function musicPump(ft) {
+  if (!MUS.on) return;
+  const ac = SND.ac, H = ft + .35;
+  while (MUS.ptr < MUS.ev.length && MUS.ev[MUS.ptr].t <= H) {
+    const e = MUS.ev[MUS.ptr++], w = MUS.a0 + (e.t - MUS.t0);
+    if (w < ac.currentTime - .01) continue;
+    INST[e.i](e, w, MUS.bus);
+  }
+}
 
 const canvas = document.getElementById('plate'), ctx = canvas.getContext('2d');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1159,12 +1341,12 @@ const segs = SEQ.map((s, k) => {
   b.onclick = () => jump(k);
   trackEl.appendChild(b); return b;
 });
-function jump(k) { t = prevT = STARTS[Math.max(0, Math.min(SEQ.length - 1, k))] + .001; lastFrame = -1; if (mode !== 'film') setMode('film'); }
+function jump(k) { t = prevT = STARTS[Math.max(0, Math.min(SEQ.length - 1, k))] + .001; lastFrame = -1; if (playing) musicStart(t); if (mode !== 'film') setMode('film'); }
 
 const playBtn = document.getElementById('play');
-function setPlaying(v) { playing = v; if (v) startBtn.hidden = true; if (playing && t >= TOTAL - .01) t = prevT = 0; playBtn.textContent = playing ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', playing ? '暂停' : '播放'); last = performance.now(); }
+function setPlaying(v, tail) { playing = v; if (v) startBtn.hidden = true; if (playing && t >= TOTAL - .01) t = prevT = 0; if (v) musicStart(t); else musicStop(tail ? 1.2 : .06); playBtn.textContent = playing ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', playing ? '暂停' : '播放'); last = performance.now(); }
 playBtn.onclick = () => setPlaying(!playing);
-document.getElementById('restart').onclick = () => { t = prevT = 0; lastFrame = -1; setPlaying(true); if (mode !== 'film') setMode('film'); };
+document.getElementById('restart').onclick = () => { t = prevT = 0; lastFrame = -1; if (playing) musicStart(0); setPlaying(true); if (mode !== 'film') setMode('film'); };
 canvas.onclick = () => setPlaying(!playing);
 const sndBtn = document.getElementById('snd'), startBtn = document.getElementById('start');
 startBtn.onclick = ev => { ev.stopPropagation(); setSound(true); startBtn.hidden = true; setPlaying(true); };
@@ -1172,6 +1354,7 @@ function setSound(v) {
   if (v && !sndInit()) return;
   SND.on = v; sndBtn.setAttribute('aria-pressed', v);
   if (v && SND.ac.state === 'suspended') SND.ac.resume();
+  if (v && playing) musicStart(t); if (!v) musicStop();
   try { localStorage.setItem('moon-sound', v ? '1' : '0'); } catch (e) {}
 }
 sndBtn.onclick = () => setSound(!SND.on);
@@ -1228,7 +1411,13 @@ function loop(now) {
   const dt = Math.min(.1, (now - last) / 1000); last = now;
   if (!DATA) return;
   if (mode === 'film') {
-    if (playing) { prevT = t; t += dt; if (t >= TOTAL) { t = TOTAL - .001; setPlaying(false); } fireSfx(prevT, t); }
+    if (playing) {
+      prevT = t;
+      const live = MUS.on && SND.ac.state === 'running';
+      if (live) { const mt = MUS.t0 + (SND.ac.currentTime - MUS.a0); if (Math.abs(mt - t) > .3) musicStart(t); else t = Math.max(t, mt); } else t += dt;
+      if (t >= TOTAL) { t = TOTAL - .001; setPlaying(false, true); }
+      musicPump(t); fireSfx(prevT, t);
+    }
     const F = Math.floor(t * FPS); if (F !== lastFrame) { lastFrame = F; renderFilm(); }
   } else {
     if (!reduce) tI += dt;
