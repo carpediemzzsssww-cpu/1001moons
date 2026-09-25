@@ -6,10 +6,13 @@
 <meta name="description" content="月亮的一千零一种状态 · 第一辑：中秋十五个月亮。一个句号变成圆，圆经历十五种状态，最后变回一个句号。">
 <meta property="og:title" content="1001 States of the Moon · 月亮的一千零一种状态">
 <title>1001 States of the Moon</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
+  /* 字体：全部 SIL OFL，按片中用字做了子集并改名（见 fonts/LICENSES.md） */
+  @font-face{font-family:"Moon Kesong";src:url(fonts/xc.woff2) format("woff2");font-display:block}
+  @font-face{font-family:"Moon Mincho";src:url(fonts/gw.woff2) format("woff2");font-display:block;unicode-range:U+0000-2FFF,U+3040-FEFF}
+  @font-face{font-family:"Moon Fell SC";src:url(fonts/fell.woff2) format("woff2");font-display:block}
+  @font-face{font-family:"Moon Typewriter";src:url(fonts/cr.woff2) format("woff2");font-display:block}
+  @font-face{font-family:"Moon Typewriter";font-style:italic;font-weight:300;src:url(fonts/cli.woff2) format("woff2");font-display:block}
   *{box-sizing:border-box}
   body{margin:0}
   :root{
@@ -19,12 +22,12 @@
   }
   [hidden]{display:none!important}
   html,body{height:100%}
-  body{background:var(--room);color:var(--chalk);font:12px/1.6 "IBM Plex Mono",ui-monospace,Menlo,monospace;}
+  body{background:var(--room);color:var(--chalk);font:12px/1.6 "Moon Typewriter","Courier New",monospace;}
   .wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:22px 64px;display:flex;flex-direction:column;align-items:center;gap:16px}
   .stage{display:flex;justify-content:center;width:100%}
   .frame{position:relative}
-  .start{position:absolute;left:50%;bottom:11%;transform:translateX(-50%);height:auto;padding:12px 22px;display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(11,11,13,.55);border-color:rgba(232,225,209,.35);font:500 14px/1.2 "Noto Serif SC","Songti SC",serif;letter-spacing:.2em;backdrop-filter:blur(4px)}
-  .start small{font:10px/1.2 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.14em;color:var(--dim)}
+  .start{position:absolute;left:50%;bottom:11%;transform:translateX(-50%);height:auto;padding:12px 22px;display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(11,11,13,.55);border-color:rgba(232,225,209,.35);font:15px/1.2 "Moon Kesong","Songti SC",serif;letter-spacing:.24em;backdrop-filter:blur(4px)}
+  .start small{font:10px/1.2 "Moon Typewriter","Courier New",monospace;letter-spacing:.14em;color:var(--dim)}
   .start:hover{border-color:var(--chalk)}
   #plate{display:block;cursor:pointer;box-shadow:0 40px 90px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.035)}
   .bar{display:flex;align-items:center;gap:10px;width:100%;max-width:var(--w,880px)}
@@ -47,15 +50,15 @@
   .index canvas{width:100%;aspect-ratio:1;display:block}
   .index figure:hover canvas{outline:1px solid var(--dim);outline-offset:3px}
   .index figcaption{display:flex;align-items:baseline;gap:8px;font-size:11px;color:var(--dim);letter-spacing:.06em}
-  .index figcaption em{font:italic 19px/1 "Instrument Serif",Georgia,serif;color:var(--chalk);letter-spacing:0}
-  .index figcaption span:last-child{margin-left:auto;font-family:"Noto Serif SC","Songti SC",serif}
+  .index figcaption em{font:17px/1 "Moon Fell SC",Georgia,serif;color:var(--chalk);letter-spacing:.04em;font-style:normal}
+  .index figcaption span:last-child{margin-left:auto;font-family:"Moon Kesong","Songti SC",serif;font-size:13px}
   .yours{aspect-ratio:1;border:1px dashed var(--line);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;color:var(--dim);text-align:center;padding:12px}
-  .yours strong{font:italic 44px/1 "Instrument Serif",Georgia,serif;color:var(--chalk);font-weight:400}
-  .yours p{margin:0;font-family:"Noto Serif SC","Songti SC",serif;font-size:13px}
-  .colophon{max-width:60ch;color:var(--dim);font-family:"Noto Serif SC","Songti SC",serif;font-size:14px;line-height:2;margin-top:28px;text-align:left}
-  .colophon h2{font:italic 30px/1.1 "Instrument Serif",Georgia,serif;color:var(--chalk);margin:0 0 14px;font-weight:400;text-wrap:balance}
+  .yours strong{font:44px/1 "Moon Fell SC",Georgia,serif;color:var(--chalk);font-weight:400}
+  .yours p{margin:0;font-family:"Moon Mincho","Songti SC",serif;font-size:13px}
+  .colophon{max-width:60ch;color:var(--dim);font-family:"Moon Mincho","Songti SC",serif;font-size:14px;line-height:2;margin-top:28px;text-align:left}
+  .colophon h2{font:32px/1.1 "Moon Fell SC",Georgia,serif;letter-spacing:.02em;color:var(--chalk);margin:0 0 14px;font-weight:400;text-wrap:balance}
   .colophon p{margin:0 0 12px}
-  .colophon small{display:block;font:11px/1.8 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.05em;margin-top:18px;color:#6B655B}
+  .colophon small{display:block;font:11px/1.8 "Moon Typewriter","Courier New",monospace;letter-spacing:.05em;margin-top:18px;color:#6B655B}
   @media (max-width:640px){
     .index{grid-template-columns:repeat(2,minmax(0,1fr))}
     .bar{flex-wrap:wrap}
@@ -70,7 +73,7 @@
   <div class="stage" id="stage">
     <div class="frame">
       <canvas id="plate" role="img" aria-label="动画：月亮的一千零一种状态，第一辑，中秋十五个月亮"></canvas>
-      <button id="start" class="start" hidden>▶ 观看 · 带声音<small>PLAY WITH SOUND · 1′36″ · 建议戴耳机</small></button>
+      <button id="start" class="start" hidden>▶ 观看 · 带声音<small>PLAY WITH SOUND · 1′40″ · 建议戴耳机</small></button>
     </div>
   </div>
   <div class="index" id="index" hidden></div>
@@ -119,9 +122,13 @@ function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Ma
 const mk = (w, h = w) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
 const rgb = (a, b, t) => `rgb(${Math.round(lerp(a[0], b[0], t))},${Math.round(lerp(a[1], b[1], t))},${Math.round(lerp(a[2], b[2], t))})`;
 const pad = (n, l) => String(n).padStart(l, '0');
-const MONO = s => `500 ${s}px "IBM Plex Mono", ui-monospace, Menlo, monospace`;
-const SERIF = s => `italic ${s}px "Instrument Serif", Georgia, "Times New Roman", serif`;
-const ZH = (w, s) => `${w} ${s}px "Noto Serif SC", "Songti SC", "STSong", serif`;
+// 打字机衬线（数字、时间码）/ 打字机斜体（开场句子、To be continued）/ 老历书小型大写（标签、状态名）
+// 中文：刻宋（标题、诗、印章、中秋快乐）/ 明体（旁白）
+const MONO = s => `${s}px "Moon Typewriter", "Courier New", monospace`;
+const SERIF = s => `italic 300 ${s}px "Moon Typewriter", "Courier New", monospace`;
+const FELL = s => `${s}px "Moon Fell SC", Georgia, serif`;
+// 明体是台湾字形，标点居中；旁白的标点交给刻宋（简体字形）
+const ZH = (w, s) => w >= 500 ? `${s}px "Moon Kesong", "Songti SC", "STSong", serif` : `${s}px "Moon Mincho", "Moon Kesong", "Songti SC", serif`;
 function track(ctx, px) { try { ctx.letterSpacing = px + 'px'; } catch (e) {} }
 
 /* 3D value noise — 在球面上取样，无接缝 */
@@ -446,14 +453,19 @@ function varLine(ctx, pts, closed) {
 function typeOn(ctx, str, n, x, y) { ctx.fillText(str.slice(0, n), x, y); }
 const LUNAR = (() => { const a = '一二三四五六七八九十'; const o = []; for (let d = 1; d <= 30; d++) o.push(d <= 10 ? '初' + a[d - 1] : d < 20 ? '十' + a[d - 11] : d === 20 ? '二十' : d < 30 ? '廿' + a[d - 21] : '三十'); return o; })();
 // 开场那句话末尾的句号 —— 放大到底，里面是一整片夜空和一轮月亮
+let SENT_K = 0;
+function sentK(ctx) {
+  if (!SENT_K) { ctx.save(); ctx.font = SERIF(100); SENT_K = Math.min(.054, .84 / (ctx.measureText('There are a thousand and one moons tonight').width / 100 + .2)); ctx.restore(); }
+  return SENT_K;
+}
 function sentenceLayout(ctx, S) {
-  const fs = S * .054, t = 'There are a thousand and one moons tonight';
-  ctx.font = SERIF(fs); const w = ctx.measureText(t).width, pr = fs * .075, gap = fs * .05;
+  const fs = S * sentK(ctx), t = 'There are a thousand and one moons tonight';
+  ctx.font = SERIF(fs); const w = ctx.measureText(t).width, pr = fs * .085, gap = fs * .05;
   const x0 = S / 2 - (w + gap + 2 * pr) / 2, base = S * .5;
   return { fs, t, w, x0, base, px: x0 + w + gap + pr, py: base - pr * 1.05, pr };
 }
-const Z0 = .34 / (.054 * .075 * .44);
-const coldZ = p => { const zs = Z0 * (1 + .1 * eout(seg(p, 0, .18))); return Math.exp(Math.log(zs) * (1 - eio(seg(p, .18, .62)))); };
+const z0 = () => .34 / ((SENT_K || .054) * .085 * .44);
+const coldZ = p => { const zs = z0() * (1 + .1 * eout(seg(p, 0, .18))); return Math.exp(Math.log(zs) * (1 - eio(seg(p, .18, .62)))); };
 function periodRing(ctx, x, y, r, w, col = INK) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke(); }
 
 /* ============================================================
@@ -662,12 +674,12 @@ const objAt = p => { for (let i = 0; i < OBJECTS.length; i++) if (p < OBJECTS[i]
 
 const TITLE = {
   num: 0, en: 'Prologue', zh: '序', dur: 12, tl: 'CHAPTER 01', mat: '丙午年八月十五 · 中秋',
-  dark: p => coldZ(p) * .054 * .075 > .72,
+  dark: p => coldZ(p) * (SENT_K || .054) * .085 > .72,
   hudA: p => Math.round(seg(p, .62, .72) * 4) / 4,
-  note: p => p < .9 ? '一切，从一个句号开始。' : '一个圆，还可以发生什么？',
+  note: p => p < .8 ? '今晚有一千零一种月亮。我们找到了十五种。' : p < .9 ? '故事从一个句号开始。' : '一个圆，还可以发生什么？',
   draw(ctx, e) {
     const { S, C, p, lt, u } = e, L = sentenceLayout(ctx, S), Z = coldZ(p);
-    const g = clamp(Math.log(Z) / Math.log(Z0 * 1.1));
+    const g = clamp(Math.log(Z) / Math.log(z0() * 1.1));
     const Fx = L.px + (C - L.px) * g, Fy = L.py + (C - L.py) * g;
     ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left';
     // 句子（镜头拉远时才出现）
@@ -708,7 +720,7 @@ const TITLE = {
     if (p > .64 && fade > 0) {
       const l2 = '今晚，有一千零一种月亮。';
       ctx.globalAlpha = fade; ctx.font = ZH(400, S * .024); ctx.fillStyle = GRAPH;
-      const w2 = ctx.measureText(l2).width; typeOn(ctx, l2, Math.floor(seg(p, .64, .76) * l2.length), C - w2 / 2, L.base + S * .07);
+      const w2 = ctx.measureText(l2).width; softLine(ctx, l2, C - w2 / 2, L.base + S * .07, seg(p, .64, .76) * 1.4, 12, S * .006);
       if (p > .78) {
         const l3 = 'CHAPTER 01 — WHAT CAN HAPPEN TO A CIRCLE?';
         ctx.font = MONO(S * .014); track(ctx, S * .003); const w3 = ctx.measureText(l3).width;
@@ -981,7 +993,7 @@ const STATES = [
       if (pct > 0) { ctx.beginPath(); ctx.arc(C, C, R, -Math.PI / 2, end); ctx.stroke(); }
       penDot(ctx, C + R * Math.cos(end), C + R * Math.sin(end), e);
       if (pct >= 99 && p > .76 && (F % 24) < 13) { ctx.strokeStyle = RED; ctx.lineCap = 'butt'; ctx.beginPath(); ctx.arc(C, C, R, end + .018, Math.PI * 1.5 - .018); ctx.stroke(); ctx.lineCap = 'round'; }
-      ctx.font = `400 ${S * .062}px "IBM Plex Mono", ui-monospace, monospace`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = MONO(S * .066); ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(pct + '%', C, C); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     },
     sfx(p0, p1) { if (pctAt(p0) !== pctAt(p1) && pctAt(p1) < 99) FX.blip(800 + pctAt(p1) * 8, .025); if (X(p0, p1, .76)) FX.error(); if (X(p0, p1, .92)) FX.error(); } },
@@ -989,7 +1001,7 @@ const STATES = [
     note: p => p < .3 ? '进度条碎成了星星。' : p < .55 ? '星星给它空出一个位置。' : '它不在那里。你还是看见了它。',
     draw(ctx, e) {
       const { S, C, R, u, p } = e, st = DATA.stars;
-      if (p < .04) { ctx.font = `400 ${S * .062}px "IBM Plex Mono", ui-monospace, monospace`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('99%', C, C); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; }
+      if (p < .04) { ctx.font = MONO(S * .066); ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('99%', C, C); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; }
       const trail = .42 * eio(seg(p, .5, .97));
       // 进度条碎成的第一批星
       ctx.fillStyle = 'rgba(27,26,23,.9)';
@@ -1027,30 +1039,53 @@ const STATES = [
       if (X(p0, p1, .25)) FX.crackle(.6);
       if (X(p0, p1, .84)) FX.whoosh(1.4, true, .1);
     } },
-  { en: 'Moon', zh: '月亮', dur: 12, dark: true, mat: 'MOON · 月',
-    note: p => p < .3 ? '是今晚的月亮。十五的月亮。' : p < .62 ? '1001 不是数量，是一句承诺。' : '它回到句子里，做回一个句号。',
+  { en: 'Moon', zh: '月亮', dur: 16, dark: true, mat: 'MOON · 月',
+    note: p => p < .2 ? '门后面，是今晚的月亮。十五的月亮。' : p < .36 ? '这只是一千零一种月亮里的十五种。' : p < .48 ? '剩下的九百八十六种，留给你去找。' : p < .7 ? '它回到句子里，做回一个句号。' : '然后，回到天上。',
     draw(ctx, e) {
       const { S, C, R, p, lt } = e;
-      const sh = eio(seg(p, .62, .82));
-      for (const s of DATA.nstars) { const a = (.25 + .3 * Math.sin(lt * s.sp + s.ph)) * (1 - sh * .4); ctx.fillStyle = `rgba(240,232,215,${a})`; ctx.beginPath(); ctx.arc(s.x * S, s.y * S, s.sz * S, 0, TAU); ctx.fill(); }
-      const fs1 = S * lerp(.04, .062, sh), l1 = 'To be continued';
-      ctx.font = SERIF(fs1); const w1 = ctx.measureText(l1).width, prd = fs1 * .085, gap = fs1 * .05;
+      const sh = eio(seg(p, .48, .62)), up = eio(seg(p, .7, .82)), tf = 1 - Math.round(seg(p, .69, .75) * 6) / 6;
+      for (const s of DATA.nstars) { const a = (.25 + .3 * Math.sin(lt * s.sp + s.ph)) * (1 - sh * .5 + up * .5); ctx.fillStyle = `rgba(240,232,215,${a})`; ctx.beginPath(); ctx.arc(s.x * S, s.y * S, s.sz * S, 0, TAU); ctx.fill(); }
+      const fs1 = S * lerp(.044, .062, sh), l1 = 'To be continued';
+      ctx.font = SERIF(fs1); const w1 = ctx.measureText(l1).width, prd = fs1 * .085, gap = fs1 * .06;
       const x1 = C - (w1 + gap + 2 * prd) / 2, y1 = lerp(C + R + S * .09, C + S * .01, sh);
-      const px = x1 + w1 + gap + prd, py = y1 - prd * 1.05;
-      const rr = R * Math.pow(prd / R, sh), mx = lerp(C, px, sh), my = lerp(C, py, sh);
+      const px = x1 + w1 + gap + prd, py = y1 - prd * 1.1;
+      let rr = R * Math.pow(prd / R, sh), mx = lerp(C, px, sh), my = lerp(C, py, sh);
+      if (up > 0) { const R2 = S * .06; rr = prd * Math.pow(R2 / prd, up); mx = lerp(px, C, up); my = lerp(py, C - S * .15, up) - Math.sin(up * Math.PI) * S * .05; }
       nightMoon(ctx, e, mx, my, rr, 1);
       ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-      const n1 = Math.floor(seg(p, .3, .4) * l1.length);
-      if (n1) { ctx.font = SERIF(fs1); ctx.fillStyle = '#E4DBC6'; typeOn(ctx, l1, n1, x1, y1); }
-      const l2 = '我们永远没有把月亮看完。', n2 = Math.floor(seg(p, .44, .58) * l2.length);
-      if (n2) { const fs2 = S * lerp(.021, .025, sh); ctx.font = ZH(400, fs2); ctx.fillStyle = '#A39A89'; const w2 = ctx.measureText(l2).width; typeOn(ctx, l2, n2, C - w2 / 2, y1 + lerp(S * .045, S * .07, sh)); }
+      if (tf > 0) {
+        ctx.globalAlpha = tf;
+        const n1 = Math.floor(seg(p, .28, .36) * l1.length);
+        if (n1) { ctx.font = SERIF(fs1); ctx.fillStyle = '#E6DDC8'; typeOn(ctx, l1, n1, x1, y1); }
+        const l2 = '我们永远没有把月亮看完。', n2 = seg(p, .36, .46);
+        if (n2 > 0) { const fs2 = S * lerp(.021, .025, sh); ctx.font = ZH(400, fs2); ctx.fillStyle = '#A39A89'; track(ctx, fs2 * .08); const w2 = ctx.measureText(l2).width; softLine(ctx, l2, C - w2 / 2, y1 + lerp(S * .05, S * .072, sh), n2 * 2.2, 12, S * .006); track(ctx, 0); }
+        ctx.globalAlpha = 1;
+      }
+      // 中秋快乐
+      const hk = seg(p, .76, .86);
+      if (hk > 0) {
+        const fs = S * .092, t = '中秋快乐'; ctx.font = ZH(600, fs); track(ctx, fs * .28);
+        const w = ctx.measureText(t).width, y = C + S * .1;
+        ctx.save(); ctx.shadowColor = 'rgba(255,214,150,.35)'; ctx.shadowBlur = S * .03 * e.dpr; ctx.fillStyle = '#EDD39B';
+        softLine(ctx, t, C - w / 2 + fs * .14, y, hk * 1.4, 8, S * .02); ctx.restore(); track(ctx, 0);
+        const sk = seg(p, .84, .92);
+        if (sk > 0) {
+          ctx.globalAlpha = eout(sk); ctx.textAlign = 'center';
+          ctx.font = FELL(S * .02); ctx.fillStyle = '#B8AE98'; track(ctx, S * .006);
+          ctx.fillText('Happy Mid-Autumn Festival', C, y + S * .07);
+          ctx.font = ZH(400, S * .017); ctx.fillStyle = '#8E867A'; track(ctx, S * .004);
+          ctx.fillText('丙午年八月十五 · 二〇二六年九月二十五日', C, y + S * .11);
+          track(ctx, 0); ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+        }
+      }
     },
     sfx(p0, p1) {
-      if (X(p0, p1, .3)) FX.roll();
-      const k = p => Math.floor(seg(p, .3, .4) * 15) + Math.floor(seg(p, .44, .58) * 12);
+      if (X(p0, p1, .2)) FX.roll();
+      const k = p => Math.floor(seg(p, .28, .36) * 15);
       if (k(p0) !== k(p1)) FX.key(.035);
-      if (X(p0, p1, .62)) FX.whoosh(2.4, false, .07);
-      if (X(p0, p1, .82)) FX.ping(1760, .07, 2.4);
+      if (X(p0, p1, .48)) FX.whoosh(2.2, false, .07);
+      if (X(p0, p1, .62)) FX.ping(1760, .06, 2.4);
+      if (X(p0, p1, .7)) FX.whoosh(1.9, true, .07);
       if (X(p0, p1, .86)) FX.thud();
     } },
 ];
@@ -1124,43 +1159,76 @@ function drawPlate(ctx, S, st, p, f, F, lt, opts) {
 }
 
 const ACTS = [[1, 3, 'ACT I', '成为', 'BECOMING'], [4, 6, 'ACT II', '失去', 'LOSING'], [7, 12, 'ACT III', '寻找', 'SEARCHING'], [13, 15, 'ACT IV', '回家', 'HOME']];
+// 逐字淡入的一行字：每个字错开一点点浮上来
+// 两款中文字体的「，。、」都是居中的台湾字形；画的时候挪到左下角，排成简体的样子
+const PUNC = '，。、';
+function softLine(ctx, str, x, y, k, rate, rise) {
+  let cx = x; const em = ctx.measureText('中').width;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i], w = ctx.measureText(ch).width, a = clamp((k * rate - i) / 5);
+    const pu = PUNC.includes(ch), dx = pu ? -em * .3 : 0, dy = pu ? em * .3 : 0;
+    if (a > 0) { const ga = ctx.globalAlpha; ctx.globalAlpha = ga * eout(a); ctx.fillText(ch, cx + dx, y + dy + (1 - eout(a)) * rise); ctx.globalAlpha = ga; }
+    cx += w;
+  }
+}
 function hud(ctx, e, st, opts, dark, A = 1) {
-  const { S, p } = e, fg = dark ? '#E9E2D0' : INK, sub = dark ? '#8E877A' : GRAPH, m = S * .045;
+  const { S, p } = e, fg = dark ? '#ECE4D2' : INK, sub = dark ? '#948C7D' : '#6F6A60', m = S * .045, cc = opts.cache, tc = opts.tc;
+  const jumped = Math.abs(tc - (cc.lastTc ?? -9)) > .2; cc.lastTc = tc;
   ctx.textBaseline = 'alphabetic';
-  ctx.strokeStyle = sub; ctx.globalAlpha = .55 * A; ctx.lineWidth = 1;
+  ctx.strokeStyle = sub; ctx.globalAlpha = .5 * A; ctx.lineWidth = 1;
   const cm = S * .018, cl = S * .016;
   [[cm, cm, 1, 1], [S - cm, cm, -1, 1], [cm, S - cm, 1, -1], [S - cm, S - cm, -1, -1]].forEach(([x, y, dx, dy]) => { ctx.beginPath(); ctx.moveTo(x + dx * cl, y); ctx.lineTo(x, y); ctx.lineTo(x, y + dy * cl); ctx.stroke(); });
   ctx.globalAlpha = A;
-  const ms = Math.max(9, S * .0155);
-  ctx.font = MONO(ms); ctx.fillStyle = fg; track(ctx, ms * .16);
-  ctx.textAlign = 'left'; ctx.fillText(st.tl, m, m + ms * .7);
-  ctx.textAlign = 'right'; ctx.fillText('1001 STATES OF THE MOON', S - m, m + ms * .7);
-  let counter = pad(st.num, 2) + ' / 15';
-  if (st.num === 15 && p > .3) counter = '15 / ' + Math.round(lerp(15, 1001, eio(seg(p, .3, .36))));
-  ctx.fillText(counter, S - m, S - m);
-  const tc = opts.tc; ctx.fillStyle = sub;
-  ctx.fillText(`${pad(Math.floor(tc / 60), 2)}:${pad(Math.floor(tc) % 60, 2)}:${pad(Math.floor(tc * FPS) % FPS, 2)}`, S - m, S - m - ms * 1.9);
-  ctx.textAlign = 'left';
-  if (st.num) {
-    ctx.font = MONO(ms * .8); ctx.fillText('MATERIAL', m, m + ms * 2.5); const wl = ctx.measureText('MATERIAL').width; track(ctx, 0);
-    const [en, zh] = st.mat.split(' · '); ctx.font = ZH(400, ms * .95); ctx.fillText(zh + '  ' + en, m + wl + ms * .8, m + ms * 2.5);
-  } else { track(ctx, 0); ctx.font = ZH(400, ms * .95); ctx.fillText(st.mat, m, m + ms * 2.5); }
-  const ns = S * .056;
-  ctx.font = SERIF(ns); ctx.fillStyle = fg; ctx.fillText(st.en, m - ns * .03, S - m - S * .034);
-  const w = ctx.measureText(st.en).width;
-  ctx.font = ZH(500, S * .024); ctx.fillText(st.zh, m + w + S * .014, S - m - S * .034);
-  const note = st.note(p), cc = opts.cache;
-  if (cc.sub !== note) { cc.sub = note; cc.subT = Math.abs(opts.tc - (cc.lastTc ?? -9)) > .2 ? -99 : opts.tc; }
-  cc.lastTc = opts.tc;
-  const nt = opts.tc < cc.subT ? note.length : Math.floor((opts.tc - cc.subT) * 26) + 1;
-  ctx.font = ZH(400, Math.max(10, S * .0205)); ctx.fillStyle = sub; ctx.fillText(note.slice(0, nt), m, S - m);
+  const ls = Math.max(9, S * .0168);
+  // 左上：编号与材料
+  ctx.font = FELL(ls); ctx.fillStyle = fg; track(ctx, ls * .14); ctx.textAlign = 'left';
+  ctx.fillText(st.num ? `Moon No. ${pad(st.num, 3)}` : st.tl, m, m + ls * .75);
+  ctx.fillStyle = sub;
+  if (st.num) { const [en, zh] = st.mat.split(' · '); ctx.font = FELL(ls * .82); ctx.fillText(en, m, m + ls * 2.45); const w0 = ctx.measureText(en + '  ').width; track(ctx, ls * .3); ctx.font = ZH(400, ls * .86); ctx.fillText(zh, m + w0, m + ls * 2.45); }
+  else { track(ctx, ls * .2); ctx.font = ZH(400, ls * .86); ctx.fillText(st.mat, m, m + ls * 2.45); }
+  // 右上
+  ctx.font = FELL(ls); ctx.fillStyle = fg; track(ctx, ls * .14); ctx.textAlign = 'right';
+  ctx.fillText('1001 States of the Moon', S - m, m + ls * .75);
+  // 中上：幕
   const act = ACTS.find(a => st.num >= a[0] && st.num <= a[1]);
-  if (act) { ctx.font = MONO(ms * .8); track(ctx, ms * .25); ctx.textAlign = 'center'; ctx.fillStyle = sub; ctx.fillText(`${act[2]} · ${act[4]}`, S / 2, m + ms * .7); ctx.font = ZH(500, ms * .95); track(ctx, ms * .5); ctx.fillStyle = fg; ctx.fillText(act[3], S / 2, m + ms * 2.5); track(ctx, 0); ctx.textAlign = 'left'; }
+  if (act) {
+    ctx.textAlign = 'center'; ctx.font = FELL(ls * .78); ctx.fillStyle = sub; track(ctx, ls * .32); ctx.fillText(`${act[2]}  ·  ${act[4]}`, S / 2, m + ls * .75);
+    ctx.font = ZH(600, ls * 1.05); ctx.fillStyle = fg; track(ctx, ls * .6); ctx.fillText(act[3], S / 2 + ls * .3, m + ls * 2.5);
+  }
+  // 右下：计数与时间码
+  let counter = pad(st.num, 2) + ' / 15';
+  if (st.num === 15 && p > .2) counter = '15 / ' + Math.round(lerp(15, 1001, eio(seg(p, .2, .26))));
+  ctx.textAlign = 'right'; track(ctx, ls * .12);
+  ctx.font = MONO(ls * 1.02); ctx.fillStyle = fg; ctx.fillText(counter, S - m, S - m);
+  ctx.font = MONO(ls * .86); ctx.fillStyle = sub;
+  ctx.fillText(`${pad(Math.floor(tc / 60), 2)}:${pad(Math.floor(tc) % 60, 2)}:${pad(Math.floor(tc * FPS) % FPS, 2)}`, S - m, S - m - ls * 1.85);
+  ctx.textAlign = 'left'; track(ctx, 0);
+  // 左下：状态名，换段时旧的上浮淡出、新的从下方浮入
+  if (cc.nameKey !== st.en) { cc.prev = cc.nameKey && !jumped ? { en: cc.nameKey, zh: cc.nameZh } : null; cc.nameKey = st.en; cc.nameZh = st.zh; cc.nameT = jumped ? -99 : tc; }
+  const nk = clamp((tc - cc.nameT) / .5), ns = S * .05, ny = S - m - S * .036;
+  const drawName = (n, a, dy) => {
+    if (a <= 0) return; ctx.globalAlpha = A * a;
+    ctx.font = FELL(ns); ctx.fillStyle = fg; track(ctx, ns * .02); ctx.fillText(n.en, m, ny + dy);
+    const w = ctx.measureText(n.en).width; track(ctx, S * .004);
+    ctx.font = ZH(600, S * .025); ctx.fillText(n.zh, m + w + S * .016, ny + dy); track(ctx, 0);
+  };
+  if (cc.prev && nk < 1) drawName(cc.prev, 1 - eout(clamp(nk * 1.8)), -S * .014 * eout(nk));
+  drawName({ en: st.en, zh: st.zh }, eout(clamp((nk - .15) / .85)), S * .016 * (1 - eout(clamp((nk - .15) / .85))));
+  ctx.globalAlpha = A;
+  // 左下：旁白，逐字浮现；旧的一句先淡出
+  const note = st.note(p);
+  if (cc.sub !== note) { cc.prevSub = cc.sub && !jumped ? cc.sub : null; cc.prevSubT = tc; cc.sub = note; cc.subT = jumped ? -99 : tc + (cc.prevSub ? .22 : 0); }
+  ctx.font = ZH(400, Math.max(10, S * .0205)); ctx.fillStyle = sub; track(ctx, S * .0012);
+  const ps = clamp((tc - cc.prevSubT) / .22);
+  if (cc.prevSub && ps < 1) { ctx.globalAlpha = A * (1 - ps); softLine(ctx, cc.prevSub, m, S - m - ps * S * .006, 99, 99, 0); ctx.globalAlpha = A; }
+  if (tc >= cc.subT) softLine(ctx, note, m, S - m, tc - cc.subT, 34, S * .008);
+  track(ctx, 0);
+  // 印章
   if (st.num === 15 && p > .86) {
     const k = Math.floor((p - .86) * st.dur * FPS / 2), sc = [1.3, 1.1, 1][Math.min(2, k)], sz = S * .058 * sc;
-    const x = S - m - sz, y = m + ms * 1.9;
+    const x = S - m - sz, y = m + ls * 1.9;
     ctx.fillStyle = RED; ctx.fillRect(x, y, sz, sz);
-    ctx.fillStyle = '#F1E6D6'; ctx.font = ZH(700, sz * .36); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#F1E6D6'; ctx.font = ZH(700, sz * .38); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     [['丙', .72, .3], ['午', .72, .72], ['中', .28, .3], ['秋', .28, .72]].forEach(([t, a, b]) => ctx.fillText(t, x + a * sz, y + b * sz));
     ctx.fillStyle = RED; const r = mulberry(9); for (let i = 0; i < 26; i++) ctx.fillRect(x + r() * sz, y + r() * sz, 1.2, 1.2);
     ctx.fillStyle = NIGHT; for (let i = 0; i < 10; i++) ctx.fillRect(x + (r() > .5 ? 0 : sz - 1.4), y + r() * sz, 1.4, 1.6);
@@ -1198,7 +1266,7 @@ const pentaBelow = m => { let r = PENTA[0]; for (const x of PENTA) if (x < m) r 
 function compose() {
   const ev = [], R = mulberry(2026);
   const add = (t, i, o) => { if (t >= 0) ev.push(Object.assign({ t, i }, o)); };
-  const moonI = SEQ.length - 1, tHush = STARTS[moonI] + .62 * SEQ[moonI].dur, tFinal = STARTS[moonI] + .82 * SEQ[moonI].dur;
+  const moonI = SEQ.length - 1, tHush = STARTS[moonI] + .48 * SEQ[moonI].dur, tFinal = STARTS[moonI] + .62 * SEQ[moonI].dur, tHappy = STARTS[moonI] + .76 * SEQ[moonI].dur;
   for (let k = 0; ; k++) {
     const tb = k * BAR; if (tb > tHush) break;
     const { i, p } = locate(tb + .01);
@@ -1231,7 +1299,12 @@ function compose() {
   const out = ev.filter(e => !(e.t >= ts0 && e.t < te)), stuck = ev.filter(e => e.t >= ts0 - .5 && e.t < ts0);
   for (let k = 1; ts0 - .5 + k * .5 < te; k++) stuck.forEach(e => { const tt = e.t + k * .5; if (tt < te) out.push(Object.assign({}, e, { t: tt, v: e.v * Math.pow(.88, k) })); });
   // 月亮落回句号的那一刻
-  out.push({ t: tHush, i: 'pad', ms: [62, 66, 69, 73, 74], d: tFinal - tHush + 4.5, v: .06 });
+  out.push({ t: tHush, i: 'pad', ms: [62, 66, 69, 73, 74], d: tHappy - tHush + .4, v: .06 });
+  // 中秋快乐：主题的第一句，音乐盒 + 竖琴，最后停在 D 上
+  out.push({ t: tHappy, i: 'pad', ms: [62, 66, 69, 74, 78], d: TOTAL - tHappy + 1, v: .075 });
+  out.push({ t: tHappy, i: 'bass', m: 38, d: 4, v: .15 });
+  [[69, 0], [74, .5], [78, 1], [76, 2], [74, 2.5], [81, 3], [86, 4.2]].forEach(([m, b]) => out.push({ t: tHappy + b * BEAT * 1.25, i: 'box', m, d: m === 86 ? 4 : .8, v: m === 86 ? .13 : .1 }));
+  [50, 57, 62, 66, 69, 74].forEach((m, j) => out.push({ t: tHappy + 4.2 * BEAT * 1.25 + j * .07, i: 'harp', m, d: 3, v: .055 }));
   [62, 69, 74, 78, 81, 86].forEach((m, j) => out.push({ t: tFinal + j * .08, i: 'harp', m, d: 2, v: .06 }));
   out.push({ t: tFinal + .5, i: 'box', m: 86, d: 3, v: .12 });
   out.push({ t: tFinal, i: 'bass', m: 38, d: 3, v: .15 });
@@ -1436,15 +1509,11 @@ function splash(msg) {
 const SCRIPT_TEXT = document.currentScript.textContent;
 async function boot() {
   size(); splash('DEVELOPING THE PLATE · 显影中');
-  const chars = [...new Set((SCRIPT_TEXT + document.body.innerText).match(/[　-〿㐀-鿿＀-￯]/g) || [])].join('');
-  const link = document.createElement('link'); link.rel = 'stylesheet';
-  link.href = 'https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap&text=' + encodeURIComponent(chars);
-  document.head.appendChild(link);
-  const fontsReady = new Promise(res => { link.onload = res; link.onerror = res; }).then(() => Promise.all([
-    document.fonts.load(ZH(600, 20), '月'), document.fonts.load(ZH(400, 20), '月'), document.fonts.load(ZH(700, 20), '圓'), document.fonts.load(ZH(500, 20), '月'),
+  const fontsReady = Promise.all([
+    document.fonts.load(ZH(600, 20), '月'), document.fonts.load(ZH(400, 20), '月'), document.fonts.load(FELL(20), 'Moon'),
     document.fonts.load(SERIF(20), 'Moon'), document.fonts.load(MONO(20), 'MOON'),
-  ]));
-  await Promise.race([fontsReady, new Promise(r => setTimeout(r, 3500))]);
+  ]);
+  await Promise.race([fontsReady, new Promise(r => setTimeout(r, 4000))]);
   await new Promise(r => setTimeout(r, 30));
   M = buildMoon(600);
   FULL.paper = renderShade(M, 0, STYLE_PAPER, M.D, mk(M.D));
