@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="月亮的一千零一种状态 · 第一辑：中秋十五个月亮。一个圆经历十五种状态，最后变回一轮满月。">
+<meta name="description" content="月亮的一千零一种状态 · 第一辑：中秋十五个月亮。一个句号变成圆，圆经历十五种状态，最后变回一个句号。">
 <meta property="og:title" content="1001 States of the Moon · 月亮的一千零一种状态">
 <title>1001 States of the Moon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +13,7 @@
   *{box-sizing:border-box}
   body{margin:0}
   :root{
-    --room:#121110; --panel:#1C1B19; --chalk:#E8E1D1; --dim:#8C8578; --line:#34312C;
+    --room:#121110; --chalk:#E8E1D1; --dim:#8C8578; --line:#34312C;
     --gold:#D9A441; --red:#B8352A;
     color-scheme:dark;
   }
@@ -27,6 +27,7 @@
   button{font:inherit;color:var(--chalk);background:transparent;border:1px solid var(--line);height:30px;padding:0 12px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
   button:hover{border-color:var(--dim)}
   button:focus-visible{outline:1px solid var(--gold);outline-offset:2px}
+  button[aria-pressed="true"]{background:var(--chalk);color:var(--room);border-color:var(--chalk)}
   #play{width:44px;padding:0}
   .track{flex:1;display:flex;gap:2px;height:30px;align-items:center;min-width:0}
   .seg{flex:var(--d) 1 0;height:10px;padding:0;border:0;background:#2B2926;position:relative;overflow:hidden}
@@ -35,7 +36,6 @@
   .seg.on{background:#3E3A34}
   .modes{display:flex}
   .modes button+button{border-left:0}
-  .modes button[aria-pressed="true"]{background:var(--chalk);color:var(--room);border-color:var(--chalk)}
   .now{font-size:11px;color:var(--dim);letter-spacing:.06em;width:100%;max-width:var(--w,880px);display:flex;justify-content:space-between;gap:12px;margin-top:-6px}
   .now b{font-weight:500;color:var(--chalk)}
   .index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 14px;width:100%}
@@ -64,27 +64,30 @@
 
 <main class="wrap">
   <div class="stage" id="stage">
-    <canvas id="plate" role="img" aria-label="定格动画：月亮的一千零一种状态，第一辑，中秋十五个月亮"></canvas>
+    <canvas id="plate" role="img" aria-label="动画：月亮的一千零一种状态，第一辑，中秋十五个月亮"></canvas>
   </div>
   <div class="index" id="index" hidden></div>
   <div class="bar" id="bar">
     <button id="play" aria-label="暂停">❚❚</button>
     <button id="restart" aria-label="从头播放">↺ Replay</button>
+    <button id="snd" aria-pressed="false" aria-label="声音">♪ Sound</button>
     <div class="track" id="track"></div>
     <div class="modes">
       <button id="mFilm" aria-pressed="true">Film 影片</button>
       <button id="mIndex" aria-pressed="false">Index 图鉴</button>
     </div>
   </div>
-  <div class="now" id="now"><span id="nowName">—</span><span>SPACE 播放/暂停 · ← → 切换 · I 图鉴</span></div>
+  <div class="now" id="now"><span id="nowName">—</span><span>SPACE 播放/暂停 · ← → 切换 · I 图鉴 · 建议开声音</span></div>
 
   <section class="colophon">
     <h2>1001 States of the Moon</h2>
     <p>今晚有一千零一种月亮。月亮可以是一颗星球，一枚像素，一滴水，一团线，一个洞，一串数字，一句话，或者什么也不是。</p>
-    <p>我们从最简单的形状开始：一个圆。然后试着用一千零一种方式，让它成为月亮。每一种状态的结局，都是下一种状态的材料。</p>
+    <p>我们从最简单的形状开始：一个句号。它变成一个圆，然后用十五种方式成为月亮。每一种状态的结局，都是下一种状态的材料。最后，月亮又变回一个句号。</p>
+    <p>九百五十年前的中秋，苏轼写下「月有阴晴圆缺」。那是最早的一份月亮状态清单。</p>
     <p>第一辑，中秋十五个月亮。1001 不是数量，是一句承诺：我们永远没有把月亮看完。</p>
     <small>CHAPTER 01 · WHAT CAN HAPPEN TO A CIRCLE? · 丙午年八月十五 · 2026.09.25<br>
-      1:1 PLATE · MOON Ø 42% · 12 FPS · CANVAS 2D · 程序生成月面，月海按真实月面坐标（雨海、澄海、静海、危海、风暴洋……）与第谷辐射纹布置</small>
+      1:1 PLATE · MOON Ø 42% · 24 FPS MOTION / 12 FPS BOIL · CANVAS 2D · WEB AUDIO<br>
+      月面程序生成：月海按真实月面坐标（雨海、澄海、静海、危海、风暴洋……）与第谷辐射纹布置，Lommel–Seeliger 光照</small>
   </section>
 </main>
 
@@ -93,7 +96,7 @@
 /* ============================================================
    基础工具 utils
    ============================================================ */
-const TAU = Math.PI * 2, DEG = Math.PI / 180, RU = 0.21, FPS = 12;
+const TAU = Math.PI * 2, DEG = Math.PI / 180, RU = 0.21, FPS = 24, BOIL = 12;
 const INK = '#1B1A17', PAPER = '#E3DDCF', GRAPH = '#7A756B', GOLD = '#D9A441', RED = '#B8352A', NIGHT = '#0B0B0D';
 const clamp = (x, a = 0, b = 1) => x < a ? a : x > b ? b : x;
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -101,6 +104,9 @@ const seg = (p, a, b) => clamp((p - a) / (b - a));
 const ss = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const eio = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const eout = t => 1 - Math.pow(1 - t, 3);
+const ein = t => t * t * t;
+const eback = t => { const c = 1.70158; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+const ebounce = t => { const n = 7.5625, d = 2.75; if (t < 1 / d) return n * t * t; if (t < 2 / d) return n * (t -= 1.5 / d) * t + .75; if (t < 2.5 / d) return n * (t -= 2.25 / d) * t + .9375; return n * (t -= 2.625 / d) * t + .984375; };
 const hash = n => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
 function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const mk = (w, h = w) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; };
@@ -116,7 +122,7 @@ const PERM = (() => { const r = mulberry(7), p = [...Array(256).keys()]; for (le
 const lat3 = (i, j, k) => PERM[PERM[PERM[i & 255] + (j & 255)] + (k & 255)] / 255;
 function vnoise(x, y, z) {
   const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
-  let xf = x - xi, yf = y - yi, zf = z - zi;
+  const xf = x - xi, yf = y - yi, zf = z - zi;
   const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), w = zf * zf * (3 - 2 * zf);
   const a = lerp(lerp(lat3(xi, yi, zi), lat3(xi + 1, yi, zi), u), lerp(lat3(xi, yi + 1, zi), lat3(xi + 1, yi + 1, zi), u), v);
   const b = lerp(lerp(lat3(xi, yi, zi + 1), lat3(xi + 1, yi, zi + 1), u), lerp(lat3(xi, yi + 1, zi + 1), lat3(xi + 1, yi + 1, zi + 1), u), v);
@@ -278,7 +284,14 @@ function pixelated(n) {
 }
 
 /* ============================================================
-   预计算的材料：粒子 / 沙丘 / 星 / 月字网格
+   苏轼《水调歌头》，丙辰中秋（1076）——最早的一份「月亮状态清单」
+   ============================================================ */
+const POEM_LINES = ['明月几时有','把酒问青天','不知天上宫阙','今夕是何年','我欲乘风归去','又恐琼楼玉宇','高处不胜寒','起舞弄清影','何似在人间','转朱阁','低绮户','照无眠','不应有恨','何事长向别时圆','人有悲欢离合','月有阴晴圆缺','此事古难全','但愿人长久','千里共婵娟'];
+const POEM = POEM_LINES.join(''), HL = POEM.indexOf('月有阴晴圆缺');
+const PCW = .042, PCH = .038, PFS = .03, PGRID = 19;
+
+/* ============================================================
+   预计算的材料：粒子 / 沙丘 / 星 / 诗的字格
    ============================================================ */
 function initData() {
   const rnd = mulberry(11), s = RU * Math.sqrt(Math.PI / 1500), G = .5 + RU * 1.45;
@@ -291,10 +304,9 @@ function initData() {
       const dk = dkAt(jx / RU, -jy / RU);
       let sx, sy;
       for (;;) { const a = rnd() * TAU, rr = Math.sqrt(rnd()) * RU, cx = Math.cos(a) * rr, cy = Math.sin(a) * rr; if ((cx - RU * .07) ** 2 + cy * cy > (RU * .95) ** 2) { sx = .5 + cx; sy = .5 + cy; break; } }
-      parts.push({ tx: .5 + jx, ty: .5 + jy, sx, sy, fx: .07 + rnd() * .86, fy: .1 + rnd() * .72, d: rnd() * .07, d2: rnd() * .1, ph: rnd() * TAU, r: s * .37 * (.8 + .4 * rnd()), dk, col: rgb([255, 255, 252], [66, 64, 59], dk), n: rnd() });
+      parts.push({ tx: .5 + jx, ty: .5 + jy, sx, sy, fx: .07 + rnd() * .86, fy: .1 + rnd() * .72, d: rnd() * .07, d2: rnd() * .1, ph: rnd() * TAU, r: s * .37 * (.8 + .4 * rnd()), dk, col: rgb([255, 255, 252], [66, 64, 59], dk) });
     }
   }
-  // 沙：底部先落，越落越快
   const order = parts.map((q, i) => [q.ty + (rnd() - .5) * .03, i]).sort((a, b) => b[0] - a[0]);
   const bins = new Map(), bw = s * .9, bh = s * .6;
   order.forEach(([, i], rank) => {
@@ -304,36 +316,111 @@ function initData() {
     const b = Math.round(q.xl / bw), c = bins.get(b) || 0; bins.set(b, c + 1);
     q.yl = G - (c + .5) * bh;
   });
-  // 星：避开月亮所在的圆
+  // 星：避开月亮所在的圆；带极坐标，给星轨用
   const stars = [];
   while (stars.length < 1900) {
     const x = rnd(), y = .09 + rnd() * .76;
-    if ((x - .5) ** 2 + (y - .5) ** 2 < (RU * 1.04) ** 2) continue;
+    const r = Math.hypot(x - .5, y - .5);
+    if (r < RU * 1.06) continue;
     const sz = .0006 + .0026 * Math.pow(rnd(), 7);
-    stars.push({ x, y, sz, spark: sz > .00305 });
+    stars.push({ x, y, r, th: Math.atan2(y - .5, x - .5), sz, spark: sz > .00305 });
   }
-  // 月字网格
-  const cell = 2 * RU / 25, cells = [];
-  for (let gy = -13; gy <= 13; gy++) for (let gx = -13; gx <= 13; gx++) {
-    const x = gx * cell, y = gy * cell, d = Math.hypot(x, y);
-    if (d > RU - cell * .3) continue;
+  // 夜空里的几颗亮星
+  const nstars = [];
+  while (nstars.length < 46) { const x = rnd(), y = .08 + rnd() * .74; if (Math.hypot(x - .5, y - .5) < RU * 1.6) continue; nstars.push({ x, y, sz: .0008 + rnd() * .0014, ph: rnd() * TAU, sp: 1 + rnd() * 2 }); }
+  // 诗 → 月：竖排的格子，从右到左、从上到下
+  const pcell = 2 * RU / PGRID, pcells = [];
+  for (let gx = 9; gx >= -9; gx--) for (let gy = -9; gy <= 9; gy++) {
+    const x = gx * pcell, y = gy * pcell;
+    if (Math.hypot(x, y) > RU - pcell * .25) continue;
     const dk = dkAt(x / RU, -y / RU);
-    cells.push({ x: .5 + x, y: .5 + y, dk, k: gx === 0 && gy === 0 ? -2 : gx === 1 && gy === 0 ? -1 : d + rnd() * cell * 4, ink: rgb([180, 174, 162], [27, 26, 23], dk) });
+    pcells.push({ x: .5 + x, y: .5 + y, dk, ink: rgb([180, 174, 162], [27, 26, 23], dk) });
   }
-  cells.sort((a, b) => a.k - b.k);
+  pcells.forEach((c, i) => { const k = i % POEM.length; c.ch = POEM[k]; c.hl = k >= HL && k < HL + 6; });
+  const blk = [];
+  POEM_LINES.forEach((L, col) => [...L].forEach((ch, r) => blk.push({ x: .5 + (9 - col) * PCW, y: .5 + (r - 3) * PCH })));
   // 被咬走时飞出的碎屑
   const crumbs = [];
   for (let k = 0; k < 5; k++) for (let i = 0; i < 13; i++) crumbs.push({ k, a: Math.PI + (rnd() - .5) * 1.5, vx: .08 + rnd() * .32, vy: -(.04 + rnd() * .26), sz: .002 + rnd() * .004, rot: rnd() * TAU });
-  return { parts, G, stars, cells, cell, crumbs, s };
+  // 柳条
+  const willow = [];
+  for (let k = 0; k < 7; k++) { const l = []; const x0 = -.95 + k * .13 + rnd() * .05, len = .7 + rnd() * .6; for (let i = 0; i < 9; i++) l.push({ t: i / 8, side: i % 2 ? 1 : -1, s: .8 + rnd() * .4 }); willow.push({ x0, len, sway: rnd() * TAU, leaves: l }); }
+  return { parts, G, stars, nstars, pcells, pcell, blk, crumbs, willow, s };
 }
+
+/* ============================================================
+   声音：全部用 Web Audio 实时合成，没有音频文件
+   ============================================================ */
+const SND = { on: false, ac: null };
+function sndInit() {
+  if (SND.ac) return true;
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false;
+  const ac = new AC(), master = ac.createGain(), comp = ac.createDynamicsCompressor();
+  master.gain.value = .55; master.connect(comp); comp.connect(ac.destination);
+  const conv = ac.createConvolver(), len = ac.sampleRate * 2.8, ir = ac.createBuffer(2, len, ac.sampleRate);
+  for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+  conv.buffer = ir; const wet = ac.createGain(); wet.gain.value = .34; master.connect(conv); conv.connect(wet); wet.connect(comp);
+  const nb = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+  Object.assign(SND, { ac, master, nb });
+  return true;
+}
+function tone(o) {
+  if (!SND.on || !SND.ac) return;
+  const { ac, master } = SND, t0 = ac.currentTime + (o.delay || 0), d = o.dur ?? .3, a = o.a ?? .005, v = o.vol ?? .15;
+  const osc = ac.createOscillator(), g = ac.createGain();
+  osc.type = o.type || 'sine'; osc.frequency.setValueAtTime(o.f, t0);
+  if (o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2, t0 + (o.glide || d));
+  g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + a); g.gain.exponentialRampToValueAtTime(.0001, t0 + a + d);
+  osc.connect(g); g.connect(master); osc.start(t0); osc.stop(t0 + a + d + .05);
+}
+function noise(o) {
+  if (!SND.on || !SND.ac) return;
+  const { ac, master, nb } = SND, t0 = ac.currentTime + (o.delay || 0), d = o.dur ?? .1, a = o.a ?? .002, v = o.vol ?? .15;
+  const src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+  src.buffer = nb; src.loop = true;
+  f.type = o.ft || 'bandpass'; f.frequency.setValueAtTime(o.f || 2000, t0); if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t0 + a + d); f.Q.value = o.q ?? 1;
+  g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + a); g.gain.exponentialRampToValueAtTime(.0001, t0 + a + d);
+  src.connect(f); f.connect(g); g.connect(master); src.start(t0, Math.random()); src.stop(t0 + a + d + .05);
+}
+const FX = {
+  key: (v = .06) => { noise({ f: 2200 + Math.random() * 1400, q: 3, dur: .03, vol: v }); tone({ f: 160 + Math.random() * 40, dur: .03, vol: v * .5, type: 'triangle' }); },
+  pop: () => tone({ f: 520, f2: 1100, dur: .14, vol: .13, glide: .05 }),
+  ping: (f = 880, v = .1, d = 1.4) => { tone({ f, dur: d, vol: v }); tone({ f: f * 2.01, dur: d * .5, vol: v * .3 }); },
+  bell: (f = 392) => [1, 2.76, 5.4, 8.93].forEach((m, i) => tone({ f: f * m, dur: 3.4 / (i + 1), vol: .13 / (i + 1) })),
+  whoosh: (d = .6, up = true, v = .12) => noise({ f: up ? 300 : 3000, f2: up ? 3200 : 260, q: .8, dur: d * .5, a: d * .5, vol: v }),
+  chomp: () => { noise({ ft: 'lowpass', f: 1400, f2: 300, dur: .14, vol: .35 }); tone({ f: 110, f2: 60, dur: .12, vol: .2, type: 'triangle' }); noise({ f: 4200, q: 1, dur: .05, vol: .07, delay: .04 }); },
+  hiss: (d = 3, v = .07) => noise({ ft: 'highpass', f: 5200, dur: d * .6, a: d * .4, vol: v }),
+  bloop: () => tone({ f: 320, f2: 110, dur: .28, vol: .16 }),
+  drip: () => tone({ f: 600, f2: 2400, dur: .1, vol: .13, glide: .08 }),
+  plip: () => { tone({ f: 1500, f2: 480, dur: .2, vol: .17, glide: .1 }); [1, 2, 3, 4].forEach(k => tone({ f: 1250 - k * 140, f2: 480, dur: .22, vol: .07 / k, delay: k * .24 })); },
+  pluck: (f = 196) => { tone({ f, dur: 1.1, vol: .16, type: 'triangle' }); tone({ f: f * 2, dur: .5, vol: .05, type: 'triangle' }); },
+  zip: d => noise({ f: 1800, q: 5, dur: d * .8, a: d * .2, vol: .045 }),
+  scratch: d => noise({ f: 2800, q: 1.4, dur: d * .8, a: .05, vol: .05 }),
+  blip: (f = 1200, v = .035) => tone({ f, dur: .04, vol: v, type: 'square' }),
+  error: () => { tone({ f: 220, dur: .14, vol: .07, type: 'square' }); tone({ f: 185, dur: .22, vol: .07, type: 'square', delay: .18 }); },
+  shatter: () => { for (let i = 0; i < 18; i++) tone({ f: 1800 + Math.random() * 3200, dur: .3 + Math.random() * .7, vol: .03, delay: Math.random() * .6 }); },
+  pad: (d = 7, v = .055) => [146.83, 220, 293.66, 369.99, 440, 587.33].forEach((f, i) => { tone({ f, dur: d, vol: v / (1 + i * .35), a: d * .3 }); tone({ f: f * 1.004, dur: d, vol: v / (2 + i), a: d * .35 }); }),
+  clink: (v = .1) => [2100, 3400, 5200].forEach((f, i) => tone({ f: f * (1 + Math.random() * .02), dur: .4 / (i + 1), vol: v / (i + 1) })),
+  click: () => noise({ f: 1600, q: 1, dur: .02, vol: .13 }),
+  thud: () => { tone({ f: 95, f2: 45, dur: .28, vol: .38 }); noise({ ft: 'lowpass', f: 700, dur: .08, vol: .22 }); },
+  roll: () => { for (let i = 0; i < 12; i++) noise({ f: 2800, q: 3, dur: .02, vol: .05, delay: i * .03 }); },
+  ding: () => { tone({ f: 1318.5, dur: 1.6, vol: .1 }); tone({ f: 1975.5, dur: 1.2, vol: .05, delay: .06 }); tone({ f: 2637, dur: .8, vol: .03, delay: .12 }); },
+  crackle: d => { for (let i = 0; i < d * 14; i++) noise({ f: 3000 + Math.random() * 3000, q: 4, dur: .01, vol: .03 + Math.random() * .04, delay: Math.random() * d }); },
+};
 
 /* ============================================================
    通用绘制
    ============================================================ */
 function moonImg(ctx, img, e, r = e.R, x = e.C, y = e.C) { ctx.drawImage(img, x - r, y - r, 2 * r, 2 * r); }
+function nightMoon(ctx, e, x, y, r, a = 1) {
+  const g = ctx.createRadialGradient(x, y, r * .9, x, y, r * 3.3);
+  const k = .2 * a * (1 + .06 * Math.sin(e.lt * 1.4));
+  g.addColorStop(0, `rgba(255,236,200,${k})`); g.addColorStop(.3, `rgba(255,236,200,${k * .25})`); g.addColorStop(1, 'rgba(255,236,200,0)');
+  ctx.fillStyle = g; ctx.fillRect(x - r * 3.4, y - r * 3.4, r * 6.8, r * 6.8);
+  ctx.globalAlpha = a; ctx.drawImage(FULL.night, x - r, y - r, 2 * r, 2 * r); ctx.globalAlpha = 1;
+}
 const wob = (th, f) => 1 + .005 * Math.sin(3 * th + f * 1.7) + .003 * Math.sin(7 * th - f * 2.3);
 function penDot(ctx, x, y, e) { ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(x, y, 2.4 * e.u, 0, TAU); ctx.fill(); }
-// 可变线宽的折线：按线宽量化分批 stroke
 function varLine(ctx, pts, closed) {
   if (pts.length < 2) return;
   let lvl = -1;
@@ -348,19 +435,29 @@ function varLine(ctx, pts, closed) {
 }
 function typeOn(ctx, str, n, x, y) { ctx.fillText(str.slice(0, n), x, y); }
 const LUNAR = (() => { const a = '一二三四五六七八九十'; const o = []; for (let d = 1; d <= 30; d++) o.push(d <= 10 ? '初' + a[d - 1] : d < 20 ? '十' + a[d - 11] : d === 20 ? '二十' : d < 30 ? '廿' + a[d - 21] : '三十'); return o; })();
+// 片头那句话里的句号「。」——整部片从它开始，也在它结束
+function titleLayout(ctx, S) {
+  const fs = S * .042, t = '今晚有一千零一种月亮';
+  ctx.font = ZH(500, fs); const w = ctx.measureText(t).width, full = w + fs * .62, x0 = S / 2 - full / 2, base = S / 2;
+  return { fs, t, w, x0, base, px: x0 + w + fs * .27, py: base - fs * .15, pr: fs * .12, pw: fs * .06 };
+}
+function periodRing(ctx, x, y, r, w, col = INK) { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke(); }
 
 /* ============================================================
    十五种状态 — 每个都是 draw(ctx, e)，e.p ∈ [0,1]
    上一种状态的结局，是下一种状态的材料
+   sfx(p0, p1) 在播放经过某个时刻时触发声音
    ============================================================ */
+const X = (p0, p1, a) => p0 < a && p1 >= a;
 const lessN = p => p < .06 ? 128 : Math.round(3 + 61 * Math.pow(1 - seg(p, .06, .7), 2.2));
 const phiAt = p => TAU * eio(seg(p, .1, .9));
 const BITES = [.12, .27, .42, .56, .68];
+const BITE_DAYS = ['十七', '二十', '廿三', '廿六', '廿八'];
 const LK = [[.16,0],[.22,1],[.3,12],[.34,27],[.44,31],[.5,58],[.58,74],[.62,86],[.68,97],[.72,99]];
 const pctAt = p => { if (p <= LK[0][0]) return 0; for (let i = 0; i < LK.length - 1; i++) if (p < LK[i + 1][0]) return Math.floor(lerp(LK[i][1], LK[i + 1][1], (p - LK[i][0]) / (LK[i + 1][0] - LK[i][0]))); return 99; };
 const RES = [['4K',0],['1080P',300],['720P',180],['480P',120],['144P',48],['32 PX',32],['16 PX',16],['8 PX',8],['4 PX',4],['2 PX',2],['1 PX',1]];
-const resAt = p => RES[Math.min(RES.length - 1, Math.floor(seg(p, .12, .8) * RES.length))];
-const OBJ_T0 = .07, OBJ_T1 = .95;
+const resIdx = p => Math.min(RES.length - 1, Math.floor(seg(p, .12, .8) * RES.length));
+const K_RINGS = 36, NRING = 360;
 
 function chaos(s, f, e) {
   const b = Math.sin(f * 1.3) * .06, c = Math.cos(f * .9) * .06;
@@ -368,30 +465,88 @@ function chaos(s, f, e) {
   const y = .5 * Math.cos(TAU * 4 * s + .4) + .28 * Math.sin(TAU * 9 * s + 2.2 + c) + .14 * Math.cos(TAU * 17 * s + b) + .06 * Math.sin(TAU * 23 * s + 1);
   return [e.C + e.R * 1.08 * x, e.C + e.R * 1.08 * y];
 }
-function ringPts(e, rr, withAlb, m) {
+function ringPts(e, rr, m) {
   const pts = [], n = 120;
   for (let i = 0; i < n; i++) {
     const a = i / n * TAU, cx = Math.cos(a), sy = Math.sin(a);
-    const dk = withAlb ? dkAt(rr / e.R * cx, -rr / e.R * sy) : 0;
+    const dk = m > 0 ? dkAt(rr / e.R * cx, -rr / e.R * sy) : 0;
     pts.push([e.C + rr * cx, e.C + rr * sy, e.S * (.0011 + m * .0052 * dk) + .4]);
   }
   return pts;
 }
-const K_RINGS = 36;
+function drawStars(ctx, e, count, trail = 0, alpha = 1, skip = 0) {
+  const { S, C } = e, st = DATA.stars;
+  ctx.globalAlpha = alpha;
+  if (trail > .002) {
+    ctx.save(); ctx.beginPath(); ctx.rect(0, S * .1, S, S * .755); ctx.clip();
+    ctx.strokeStyle = 'rgba(27,26,23,.3)'; ctx.lineCap = 'round';
+    for (let i = skip; i < count; i++) { const s = st[i]; ctx.lineWidth = Math.max(.6, s.sz * S * 1.5); ctx.beginPath(); ctx.arc(C, C, s.r * S, s.th - trail, s.th); ctx.stroke(); }
+    ctx.restore();
+  }
+  ctx.fillStyle = 'rgba(27,26,23,.86)';
+  for (let i = skip; i < count; i++) { const s = st[i]; ctx.beginPath(); ctx.arc(s.x * S, s.y * S, Math.max(.45, s.sz * S), 0, TAU); ctx.fill(); }
+  if (trail < .05) {
+    ctx.strokeStyle = 'rgba(27,26,23,.7)'; ctx.lineWidth = Math.max(.5, S * .0008);
+    for (let i = skip; i < count; i++) { const s = st[i]; if (!s.spark) continue; const l = s.sz * S * 4.5; ctx.beginPath(); ctx.moveTo(s.x * S - l, s.y * S); ctx.lineTo(s.x * S + l, s.y * S); ctx.moveTo(s.x * S, s.y * S - l); ctx.lineTo(s.x * S, s.y * S + l); ctx.stroke(); }
+  }
+  ctx.globalAlpha = 1;
+}
 
-/* 冒名者：同一个圆，不同的东西 */
+/* 冒充者：同一个圆，不同的东西；最后一个是一扇门 */
+function drawCoin(ctx, e, y) {
+  const { C, R } = e;
+  const g = ctx.createRadialGradient(C - R * .35, y - R * .4, R * .1, C, y, R); g.addColorStop(0, '#CDB077'); g.addColorStop(1, '#A7834A');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(C, y, R, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#7F6233'; ctx.lineWidth = R * .03; ctx.beginPath(); ctx.arc(C, y, R * .87, 0, TAU); ctx.stroke();
+  ctx.strokeRect(C - R * .25, y - R * .25, R * .5, R * .5);
+  ctx.fillStyle = PAPER; ctx.fillRect(C - R * .17, y - R * .17, R * .34, R * .34);
+  ctx.fillStyle = '#6B5028'; ctx.font = ZH(700, R * .34); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  [['中', 0, -.56], ['秋', 0, .56], ['通', .56, 0], ['寶', -.56, 0]].forEach(([t, x, yy]) => ctx.fillText(t, C + x * R, y + yy * R + R * .02));
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+}
+function moonGate(ctx, e, z, k) {
+  const { S, C, R, lt } = e, hr = R * 1.06 * z;
+  ctx.save(); ctx.beginPath(); ctx.arc(C, C, hr, 0, TAU); ctx.clip();
+  const sky = ctx.createRadialGradient(C, C - R * .3, 0, C, C, R * 1.3 * z);
+  sky.addColorStop(0, rgb([30, 32, 40], [11, 11, 13], k)); sky.addColorStop(1, NIGHT);
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, S, S);
+  for (const s of DATA.nstars) { ctx.fillStyle = `rgba(240,232,215,${.35 + .35 * Math.sin(lt * s.sp + s.ph)})`; ctx.beginPath(); ctx.arc(C + (s.x - .5) * S * .6 * lerp(1, 1.4, k), C + (s.y - .5) * S * .6 * lerp(1, 1.4, k), s.sz * S, 0, TAU); ctx.fill(); }
+  const mr = R * Math.pow(1 / .3, k) * .3, mx = lerp(C + R * .34, C, eio(k)), my = lerp(C - R * .32, C, eio(k));
+  nightMoon(ctx, e, mx, my, mr, 1);
+  // 柳条，随门一起放大，最后扫出画面
+  const wz = lerp(1, 3.2, k), wa = 1 - ss(.5, .9, k);
+  if (wa > 0) {
+    ctx.globalAlpha = wa; ctx.strokeStyle = '#040405'; ctx.fillStyle = '#040405'; ctx.lineCap = 'round';
+    for (const w of DATA.willow) {
+      const x0 = C + (w.x0 - k * .9) * R * wz, y0 = C - R * 1.15 * wz, len = w.len * R * wz, sw = Math.sin(lt * 1.2 + w.sway) * .06;
+      const px = t => x0 + Math.sin(t * 1.8 + sw * 4) * R * .08 * wz + t * t * sw * R * wz, py = t => y0 + t * len;
+      ctx.lineWidth = Math.max(.7, R * .008 * wz); ctx.beginPath();
+      for (let i = 0; i <= 20; i++) { const t = i / 20; i ? ctx.lineTo(px(t), py(t)) : ctx.moveTo(px(t), py(t)); } ctx.stroke();
+      for (const l of w.leaves) { const x = px(l.t), y = py(l.t); ctx.beginPath(); ctx.ellipse(x + l.side * R * .025 * wz, y + R * .01 * wz, R * .032 * wz * l.s, R * .009 * wz * l.s, l.side * .9, 0, TAU); ctx.fill(); }
+    }
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+  if (hr > S * 1.2) return;
+  // 白墙 + 石框 + 瓦檐
+  ctx.save();
+  ctx.beginPath(); ctx.rect(-S, -S, 3 * S, 3 * S); ctx.arc(C, C, hr, 0, TAU);
+  ctx.fillStyle = '#E9E4D9'; ctx.fill('evenodd');
+  ctx.strokeStyle = '#ADA697'; ctx.lineWidth = R * .1 * z; ctx.beginPath(); ctx.arc(C, C, hr + R * .05 * z, 0, TAU); ctx.stroke();
+  ctx.strokeStyle = '#8E877A'; ctx.lineWidth = Math.max(.7, R * .008 * z); ctx.beginPath(); ctx.arc(C, C, hr + R * .1 * z, 0, TAU); ctx.stroke();
+  // 墙根一道淡淡的地线，和几道灰泥的裂痕
+  ctx.strokeStyle = 'rgba(90,80,65,.28)'; ctx.lineWidth = Math.max(.7, R * .006 * z);
+  ctx.beginPath(); ctx.moveTo(-S, C + R * 1.45 * z); ctx.lineTo(2 * S, C + R * 1.45 * z); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(C + R * 1.3 * z, C - R * .9 * z); ctx.lineTo(C + R * 1.42 * z, C - R * .72 * z); ctx.lineTo(C + R * 1.4 * z, C - R * .55 * z);
+  ctx.moveTo(C - R * 1.25 * z, C + R * .7 * z); ctx.lineTo(C - R * 1.4 * z, C + R * .82 * z); ctx.stroke();
+  ctx.restore();
+}
 const OBJECTS = [
-  ['铜钱', 'COIN', (ctx, e) => {
-    const { C, R } = e;
-    const g = ctx.createRadialGradient(C - R * .35, C - R * .4, R * .1, C, C, R); g.addColorStop(0, '#CDB077'); g.addColorStop(1, '#A7834A');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.fill();
-    ctx.strokeStyle = '#7F6233'; ctx.lineWidth = R * .03; ctx.beginPath(); ctx.arc(C, C, R * .87, 0, TAU); ctx.stroke();
-    ctx.strokeRect(C - R * .25, C - R * .25, R * .5, R * .5);
-    ctx.fillStyle = PAPER; ctx.fillRect(C - R * .17, C - R * .17, R * .34, R * .34);
-    ctx.fillStyle = '#6B5028'; ctx.font = ZH(700, R * .34); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    [['中', 0, -.56], ['秋', 0, .56], ['通', .56, 0], ['寶', -.56, 0]].forEach(([t, x, y]) => ctx.fillText(t, C + x * R, C + y * R + R * .02));
+  ['铜钱', 'COIN', .05, .18, (ctx, e, q) => {
+    const drop = ebounce(seg(q, 0, .7));
+    drawCoin(ctx, e, lerp(-e.R * 1.2, e.C, drop));
   }],
-  ['纽扣', 'BUTTON', (ctx, e) => {
+  ['纽扣', 'BUTTON', .18, .25, (ctx, e) => {
     const { C, R } = e;
     ctx.fillStyle = '#D5CFC1'; ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.fill();
     ctx.strokeStyle = '#BDB6A6'; ctx.lineWidth = R * .09; ctx.beginPath(); ctx.arc(C, C, R * .86, 0, TAU); ctx.stroke();
@@ -401,29 +556,32 @@ const OBJECTS = [
     ctx.strokeStyle = '#2A2825'; ctx.lineWidth = R * .045; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(...h[0]); ctx.lineTo(...h[2]); ctx.moveTo(...h[1]); ctx.lineTo(...h[3]); ctx.stroke();
   }],
-  ['唱片', 'RECORD', (ctx, e) => {
-    const { C, R, f } = e;
+  ['唱片', 'RECORD', .25, .33, (ctx, e) => {
+    const { C, R, lt } = e, rot = lt * TAU * .555;
     ctx.fillStyle = '#161513'; ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.fill();
     ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 1;
     for (let i = 0; i < 26; i++) { ctx.beginPath(); ctx.arc(C, C, R * (.38 + i * .023), 0, TAU); ctx.stroke(); }
-    if (ctx.createConicGradient) { const g = ctx.createConicGradient(f * .12, C, C); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.1, 'rgba(255,255,255,.1)'); g.addColorStop(.2, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,0)'); g.addColorStop(.6, 'rgba(255,255,255,.1)'); g.addColorStop(.7, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(C, C, R * .98, 0, TAU); ctx.fill(); }
-    ctx.save(); ctx.translate(C, C); ctx.rotate(f * .29);
+    if (ctx.createConicGradient) { const g = ctx.createConicGradient(.4, C, C); [[0,0],[.1,.1],[.2,0],[.5,0],[.6,.1],[.7,0],[1,0]].forEach(([o, a]) => g.addColorStop(o, `rgba(255,255,255,${a})`)); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(C, C, R * .98, 0, TAU); ctx.fill(); }
+    ctx.save(); ctx.translate(C, C); ctx.rotate(rot);
     ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(0, 0, R * .33, 0, TAU); ctx.fill();
     ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.font = MONO(R * .065); ctx.fillText('SIDE A', 0, -R * .16); ctx.font = SERIF(R * .1); ctx.fillText('Clair de Lune', 0, R * .15);
-    ctx.restore();
+    ctx.restore(); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = PAPER; ctx.beginPath(); ctx.arc(C, C, R * .025, 0, TAU); ctx.fill();
   }],
-  ['瞳孔', 'PUPIL', (ctx, e) => {
+  ['瞳孔', 'PUPIL', .33, .41, (ctx, e) => {
     const { C, R, lt } = e;
     ctx.fillStyle = '#6E685C'; ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.fill();
     const r = mulberry(3);
     for (let i = 0; i < 150; i++) { const a = r() * TAU, l = r() > .5; ctx.strokeStyle = l ? `rgba(230,220,195,${.12 + r() * .2})` : `rgba(20,18,15,${.1 + r() * .25})`; ctx.lineWidth = R * (.006 + r() * .012); ctx.beginPath(); ctx.moveTo(C + Math.cos(a) * R * .4, C + Math.sin(a) * R * .4); ctx.lineTo(C + Math.cos(a + (r() - .5) * .1) * R * .97, C + Math.sin(a + (r() - .5) * .1) * R * .97); ctx.stroke(); }
     ctx.strokeStyle = '#26241F'; ctx.lineWidth = R * .07; ctx.beginPath(); ctx.arc(C, C, R * .965, 0, TAU); ctx.stroke();
-    ctx.fillStyle = '#0E0D0C'; ctx.beginPath(); ctx.arc(C, C, R * (.36 + .12 * Math.sin(lt * 5)), 0, TAU); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.ellipse(C - R * .34, C - R * .36, R * .12, R * .08, -.6, 0, TAU); ctx.fill();
+    const pr = R * (.44 - .14 * eout(seg(lt, .05, .35)));
+    ctx.fillStyle = '#0E0D0C'; ctx.beginPath(); ctx.arc(C, C, pr, 0, TAU); ctx.fill();
+    // 瞳孔里的高光，是一枚小小的月亮
+    ctx.drawImage(FULL.night, C - R * .42, C - R * .44, R * .2, R * .2);
+    ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.ellipse(C + R * .2, C + R * .22, R * .05, R * .03, -.6, 0, TAU); ctx.fill();
   }],
-  ['蛋黄', 'YOLK', (ctx, e) => {
+  ['蛋黄', 'YOLK', .41, .48, (ctx, e) => {
     const { C, R } = e;
     ctx.fillStyle = '#FBFAF5'; ctx.strokeStyle = 'rgba(120,105,80,.25)'; ctx.lineWidth = 1;
     ctx.beginPath();
@@ -433,19 +591,15 @@ const OBJECTS = [
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.ellipse(C - R * .38, C - R * .42, R * .16, R * .09, -.7, 0, TAU); ctx.fill();
   }],
-  ['橙子', 'ORANGE', (ctx, e) => {
+  ['橙子', 'ORANGE', .48, .54, (ctx, e) => {
     const { C, R } = e;
     ctx.fillStyle = '#DD862C'; ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.fill();
     ctx.fillStyle = '#F4E5C3'; ctx.beginPath(); ctx.arc(C, C, R * .92, 0, TAU); ctx.fill();
-    const n = 11;
-    for (let i = 0; i < n; i++) {
-      const a0 = i / n * TAU + .05, a1 = (i + 1) / n * TAU - .05;
-      ctx.fillStyle = '#EFA23C'; ctx.beginPath(); ctx.moveTo(C + Math.cos((a0 + a1) / 2) * R * .1, C + Math.sin((a0 + a1) / 2) * R * .1); ctx.arc(C, C, R * .85, a0, a1); ctx.closePath(); ctx.fill();
-    }
+    for (let i = 0; i < 11; i++) { const a0 = i / 11 * TAU + .05, a1 = (i + 1) / 11 * TAU - .05; ctx.fillStyle = '#EFA23C'; ctx.beginPath(); ctx.moveTo(C + Math.cos((a0 + a1) / 2) * R * .1, C + Math.sin((a0 + a1) / 2) * R * .1); ctx.arc(C, C, R * .85, a0, a1); ctx.closePath(); ctx.fill(); }
     const r = mulberry(8); ctx.fillStyle = 'rgba(250,205,120,.55)';
     for (let i = 0; i < 90; i++) { const a = r() * TAU, rr = R * (.2 + r() * .6); ctx.beginPath(); ctx.ellipse(C + Math.cos(a) * rr, C + Math.sin(a) * rr, R * .03, R * .012, a, 0, TAU); ctx.fill(); }
   }],
-  ['时钟', 'CLOCK', (ctx, e) => {
+  ['时钟', 'CLOCK', .54, .6, (ctx, e) => {
     const { C, R, lt } = e;
     ctx.fillStyle = '#F5F2E9'; ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.fill();
     ctx.strokeStyle = INK; ctx.lineWidth = R * .035; ctx.stroke();
@@ -456,7 +610,7 @@ const OBJECTS = [
     ctx.lineWidth = R * .03; ctx.beginPath(); ctx.moveTo(C, C); ctx.lineTo(C + Math.cos(mA) * R * .72, C + Math.sin(mA) * R * .72); ctx.stroke();
     ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(C, C, R * .05, 0, TAU); ctx.fill();
   }],
-  ['灯笼', 'LANTERN', (ctx, e) => {
+  ['灯笼', 'LANTERN', .6, .67, (ctx, e) => {
     const { C, R, lt } = e;
     ctx.save(); ctx.translate(C, C - R * 1.5); ctx.rotate(.05 * Math.sin(lt * 5)); ctx.translate(-C, -(C - R * 1.5));
     ctx.strokeStyle = INK; ctx.lineWidth = R * .015; ctx.beginPath(); ctx.moveTo(C, C - R * 1.5); ctx.lineTo(C, C - R * 1.05); ctx.stroke();
@@ -469,7 +623,7 @@ const OBJECTS = [
     for (let i = -4; i <= 4; i++) { ctx.beginPath(); ctx.moveTo(C + i * R * .04, C + R * 1.08); ctx.lineTo(C + i * R * .045, C + R * 1.5); ctx.stroke(); }
     ctx.restore();
   }],
-  ['月饼', 'MOONCAKE', (ctx, e) => {
+  ['月饼', 'MOONCAKE', .67, .74, (ctx, e) => {
     const { C, R } = e;
     const g = ctx.createRadialGradient(C - R * .2, C - R * .25, R * .1, C, C, R); g.addColorStop(0, '#DDA560'); g.addColorStop(1, '#B77634');
     ctx.fillStyle = g; ctx.beginPath();
@@ -480,73 +634,100 @@ const OBJECTS = [
     for (let i = 0; i < 16; i++) { const a = i / 16 * TAU; ctx.beginPath(); ctx.ellipse(C + Math.cos(a) * R * .6, C + Math.sin(a) * R * .6, R * .07, R * .03, a, 0, TAU); ctx.fill(); }
     ctx.strokeStyle = '#94602A'; ctx.lineWidth = R * .02; ctx.beginPath(); ctx.arc(C, C, R * .44, 0, TAU); ctx.stroke();
     ctx.font = ZH(700, R * .5); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#E8BB78'; ctx.fillText('圓', C - R * .012, C - R * .012 + R * .03);
-    ctx.fillStyle = '#86541F'; ctx.fillText('圓', C + R * .012, C + R * .012 + R * .03);
+    ctx.fillStyle = '#E8BB78'; ctx.fillText('圓', C - R * .012, C + R * .018);
+    ctx.fillStyle = '#86541F'; ctx.fillText('圓', C + R * .012, C + R * .042);
     ctx.fillStyle = '#C08040'; ctx.fillText('圓', C, C + R * .03);
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }],
+  ['月洞门', 'MOON GATE', .74, 1.01, (ctx, e, q, p) => {
+    const zk = ein(seg(p, .84, 1)), z = 1 + zk * (e.S / e.R) * 2.2;
+    moonGate(ctx, e, z, eio(seg(p, .84, 1)));
   }],
 ];
-const objAt = p => Math.min(OBJECTS.length - 1, Math.floor(seg(p, OBJ_T0, OBJ_T1) * OBJECTS.length));
+const objAt = p => { for (let i = 0; i < OBJECTS.length; i++) if (p < OBJECTS[i][3]) return i; return OBJECTS.length - 1; };
 
 const TITLE = {
-  num: 0, en: '15 Moons for Mid-Autumn', zh: '中秋十五个月亮', dur: 4.6, tl: 'CHAPTER 01',
-  note: () => '丙午年八月十五',
+  num: 0, en: '15 Moons for Mid-Autumn', zh: '中秋十五个月亮', dur: 6, tl: 'CHAPTER 01', mat: '丙午年八月十五',
+  note: p => p < .4 ? '一个圆，还可以发生什么？' : '2026.09.25 · 中秋',
   draw(ctx, e) {
-    const { S, C, R, p } = e;
+    const { S, C, p, f } = e;
     ctx.textBaseline = 'alphabetic';
-    if (p < .6) {
-      const l1 = '今晚有一千零一种月亮。', l2 = 'There are a thousand and one moons tonight.';
-      ctx.font = ZH(500, S * .04); ctx.fillStyle = INK; const w1 = ctx.measureText(l1).width;
-      const n1 = Math.floor(seg(p, .04, .3) * l1.length);
-      typeOn(ctx, l1, n1, C - w1 / 2, C);
-      ctx.font = SERIF(S * .028); ctx.fillStyle = GRAPH; const w2 = ctx.measureText(l2).width;
-      const n2 = Math.floor(seg(p, .3, .52) * l2.length);
-      typeOn(ctx, l2, n2, C - w2 / 2, C + S * .055);
-    } else if (p < .93) {
+    if (p < .38) {
+      const a = seg(p, .02, .08) * (1 - seg(p, .33, .37));
+      ctx.globalAlpha = Math.round(a * 4) / 4;
       ctx.textAlign = 'center';
       ctx.font = MONO(S * .015); ctx.fillStyle = GRAPH; track(ctx, S * .004); ctx.fillText('CHAPTER 01', C, C - S * .075); track(ctx, 0);
       ctx.font = SERIF(S * .062); ctx.fillStyle = INK; ctx.fillText('What can happen to a circle?', C, C);
       ctx.font = ZH(400, S * .022); ctx.fillStyle = GRAPH; ctx.fillText('一个圆，还可以发生什么？', C, C + S * .056);
-      ctx.textAlign = 'left';
-    } else penDot(ctx, C, C - R, e);
+      ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+      return;
+    }
+    const L = titleLayout(ctx, S);
+    const n1 = p < .84 ? Math.floor(seg(p, .4, .6) * 10) : 10 - Math.floor(seg(p, .84, .95) * 10);
+    ctx.fillStyle = INK; typeOn(ctx, L.t, n1, L.x0, L.base);
+    if (p >= .62) { const k = seg(p, .62, .66); periodRing(ctx, L.px, L.py, L.pr * (k < 1 ? eback(k) : 1), L.pw); }
+    const l2 = 'There are a thousand and one moons tonight.';
+    ctx.font = SERIF(S * .028); ctx.fillStyle = GRAPH; const w2 = ctx.measureText(l2).width;
+    const n2 = p < .84 ? Math.floor(seg(p, .64, .8) * l2.length) : Math.floor((1 - seg(p, .84, .92)) * l2.length);
+    typeOn(ctx, l2, n2, C - w2 / 2, C + S * .058);
+    if (p > .38 && p < .62 && n1 < 10 && e.F % 12 < 7) { ctx.font = ZH(500, L.fs); const cw = ctx.measureText(L.t.slice(0, n1)).width; ctx.fillStyle = INK; ctx.fillRect(L.x0 + cw + 2, L.base - L.fs * .85, 1.5 * e.u, L.fs); }
+  },
+  sfx(p0, p1) {
+    if (X(p0, p1, .02)) FX.ping(440, .05, 2.4);
+    const n = p => p < .84 ? Math.floor(seg(p, .4, .6) * 10) : 10 - Math.floor(seg(p, .84, .95) * 10);
+    if (n(p0) !== n(p1)) FX.key();
+    if (X(p0, p1, .62)) FX.pop();
+    const m = p => Math.floor(seg(p, .64, .8) * 43 / 3);
+    if (m(p0) !== m(p1) && p1 < .81) FX.key(.03);
   }
 };
 
 const STATES = [
-  { en: 'Circle', zh: '圆', dur: 3.2, note: () => '从最简单的形状开始：一个圆。',
+  { en: 'Circle', zh: '圆', dur: 3.4, mat: 'INK · 墨', note: () => '句号「。」，也是一个圆。',
     draw(ctx, e) {
-      const { C, R, u, p, f } = e, q = eio(seg(p, .06, .72));
-      if (q <= 0) return penDot(ctx, C, C - R, e);
-      ctx.strokeStyle = INK; ctx.lineWidth = 2.6 * u; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      const n = Math.max(2, Math.ceil(180 * q)); let hx, hy;
+      const { S, C, R, u, p, f } = e, L = titleLayout(ctx, S);
+      const pre = seg(p, 0, .12), b = eio(seg(p, .12, .58));
+      const x = lerp(L.px, C, b), y = lerp(L.py, C, b);
+      let r = L.pr * Math.pow(R / L.pr, b) * (1 - .18 * Math.sin(pre * Math.PI));
+      if (p > .58) r *= 1 + .045 * Math.sin((p - .58) * 26) * Math.exp(-(p - .58) * 9);
+      const w = lerp(L.pw, 2.6 * u, eio(seg(p, .12, .45)));
+      ctx.strokeStyle = INK; ctx.lineWidth = w; ctx.lineJoin = 'round';
       ctx.beginPath();
-      for (let i = 0; i <= n; i++) { const th = -Math.PI / 2 + TAU * q * i / n, r = R * wob(th, f); hx = C + r * Math.cos(th); hy = C + r * Math.sin(th); i ? ctx.lineTo(hx, hy) : ctx.moveTo(hx, hy); }
-      if (q >= 1) ctx.closePath();
-      ctx.stroke();
-      if (q < 1) penDot(ctx, hx, hy, e);
-    } },
-  { en: 'Less & Less', zh: '越来越少', dur: 4.2,
+      for (let i = 0; i <= 180; i++) { const th = i / 180 * TAU, rr = r * (b > .3 ? wob(th, f) : 1); const px = x + rr * Math.cos(th), py = y + rr * Math.sin(th); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); }
+      ctx.closePath(); ctx.stroke();
+    },
+    sfx(p0, p1) { if (X(p0, p1, .12)) FX.whoosh(.9, true, .1); if (X(p0, p1, .58)) FX.ping(660, .09, 1.6); } },
+  { en: 'Less & Less', zh: '越来越少', dur: 4.2, mat: 'GEOMETRY · 几何',
     note: p => p < .06 ? '一个圆，有无数个顶点。' : p < .84 ? `还剩 ${lessN(p)} 个顶点。` : '下一帧。',
     draw(ctx, e) {
       const { C, R, u, p, f } = e;
-      if (p >= .84) return moonImg(ctx, FULL.paper, e);
+      if (p >= .84) {
+        const k = seg(p, .84, .9);
+        moonImg(ctx, FULL.paper, e, R * (k < 1 ? eback(k) * .1 + .9 : 1));
+        if (k < 1) { ctx.strokeStyle = `rgba(255,255,255,${1 - k})`; ctx.lineWidth = 8 * u * (1 - k); ctx.beginPath(); ctx.arc(C, C, R * (1 + k * .4), 0, TAU); ctx.stroke(); }
+        return;
+      }
       const n = lessN(p);
       ctx.strokeStyle = INK; ctx.lineWidth = 2.6 * u; ctx.lineJoin = 'round';
       ctx.beginPath();
       for (let i = 0; i < n; i++) { const th = -Math.PI / 2 + TAU * i / n, r = R * wob(th, f); const x = C + r * Math.cos(th), y = C + r * Math.sin(th); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
       ctx.closePath(); ctx.stroke();
       if (n < 40) { ctx.fillStyle = INK; for (let i = 0; i < n; i++) { const th = -Math.PI / 2 + TAU * i / n, r = R * wob(th, f); ctx.beginPath(); ctx.arc(C + r * Math.cos(th), C + r * Math.sin(th), 2.2 * u, 0, TAU); ctx.fill(); } }
-    } },
-  { en: 'Phase', zh: '月相', dur: 4.4,
+    },
+    sfx(p0, p1) { if (lessN(p0) !== lessN(p1) && p1 < .84) FX.blip(200 + 3000 / Math.sqrt(lessN(p1)), .03); if (X(p0, p1, .84)) { FX.ding(); FX.whoosh(.4, false, .08); } } },
+  { en: 'Phase', zh: '月相', dur: 4.4, mat: 'LIGHT · 光',
     note: p => { const d = Math.floor((14 + phiAt(p) / TAU * 29.53) % 29.53); return `农历${LUNAR[Math.min(29, d)]} · 一个月，压缩成四秒。`; },
     draw(ctx, e) {
       const phi = phiAt(e.p);
       if (phi < 1e-4 || phi > TAU - 1e-4) return moonImg(ctx, FULL.paper, e);
       moonImg(ctx, shadeMoon(phi, STYLE_PAPER, 2 * e.R * e.dpr), e);
-    } },
-  { en: 'Bite', zh: '一口', dur: 4.2,
-    note: p => p < BITES[0] ? '十五的月亮，完整的一个。' : p < .8 ? '有人咬了一口。又一口。' : '谁吃的？',
+    },
+    sfx(p0, p1) { if (X(p0, p1, .12)) FX.whoosh(1.6, false, .06); if (X(p0, p1, .5)) FX.ping(220, .08, 2); if (X(p0, p1, .88)) FX.whoosh(1, true, .06); } },
+  { en: 'Bite', zh: '一口', dur: 4.4, mat: 'APPETITE · 食欲',
+    note: p => { const n = BITES.filter(t => p >= t).length; return n === 0 ? '十五的月亮，完整的一个。' : p < .8 ? `农历${BITE_DAYS[n - 1]} · 有人咬了一口。` : '原来月亮是这样变瘦的。谁吃的？'; },
     draw(ctx, e) {
-      const { C, R, S, p, lt, dpr } = e, W = 2 * R + 4;
+      const { C, R, S, u, p, dpr } = e, W = 2 * R + 4;
+      if (p > .74) { ctx.save(); ctx.setLineDash([2 * u, 5 * u]); ctx.strokeStyle = 'rgba(27,26,23,.35)'; ctx.lineWidth = 1.2 * u; ctx.beginPath(); ctx.arc(C, C, R, 0, TAU); ctx.stroke(); ctx.restore(); }
       const key = '_bite' + Math.round(W * dpr);
       const tmp = e.cache[key] || (e.cache[key] = mk(W * dpr)), x = tmp.getContext('2d');
       x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, tmp.width, tmp.height);
@@ -561,19 +742,20 @@ const STATES = [
         for (const a of [-.5, -.25, 0, .25, .5]) { x.beginPath(); x.arc(bx + Math.cos(Math.PI + a) * rb, by + Math.sin(Math.PI + a) * rb, R * .085, 0, TAU); x.fill(); }
       });
       x.globalCompositeOperation = 'source-over';
-      const chomp = BITES.some(t => p >= t && (p - t) * e.dur < 1.5 / FPS) ? .985 : 1;
+      const chomp = BITES.some(t => p >= t && (p - t) * e.dur < .1) ? .975 : 1;
       ctx.drawImage(tmp, C - (R + 2) * chomp, C - (R + 2) * chomp, W * chomp, W * chomp);
       ctx.fillStyle = '#CFCAC0';
       for (const c of DATA.crumbs) {
         const t0 = BITES[c.k]; if (p < t0) continue;
         const tau = (p - t0) * e.dur; if (tau > 1.4) continue;
-        const bx = C + R * (1.75 - .42 * c.k), by = C, rb = .95 * R;
-        const x0 = bx + Math.cos(c.a) * rb, y0 = by + Math.sin(c.a) * rb;
+        const bx = C + R * (1.75 - .42 * c.k), rb = .95 * R;
+        const x0 = bx + Math.cos(c.a) * rb, y0 = C + Math.sin(c.a) * rb;
         const px = x0 + c.vx * S * tau, py = y0 + c.vy * S * tau + .5 * 1.9 * S * tau * tau;
         ctx.save(); ctx.translate(px, py); ctx.rotate(c.rot + tau * 6); ctx.fillRect(-c.sz * S / 2, -c.sz * S / 2, c.sz * S, c.sz * S * .7); ctx.restore();
       }
-    } },
-  { en: 'Dust', zh: '尘', dur: 4.6,
+    },
+    sfx(p0, p1) { BITES.forEach(t => { if (X(p0, p1, t)) FX.chomp(); }); if (X(p0, p1, .82)) tone({ f: 520, f2: 780, dur: .25, vol: .08, glide: .2 }); } },
+  { en: 'Dust', zh: '尘', dur: 4.6, mat: 'REGOLITH · 月壤',
     note: p => p < .4 ? '剩下的碎屑，飘散成尘。' : '一种看不见的引力，把它们召回。',
     draw(ctx, e) {
       const { S, p, lt } = e;
@@ -586,11 +768,12 @@ const STATES = [
         ctx.fillStyle = c > .5 ? q.col : b > .5 ? '#9A958B' : '#F4F2EC';
         ctx.beginPath(); ctx.arc(x * S, y * S, q.r * S * (b > 0 && c < 1 ? .75 : 1), 0, TAU); ctx.fill();
       }
-    } },
-  { en: 'Sand', zh: '沙', dur: 4.4,
-    note: p => p < .8 ? '重力打开。月亮从最底下那一粒开始，落了一地。' : '沙丘慢慢化开。',
+    },
+    sfx(p0, p1) { if (X(p0, p1, .08)) FX.hiss(1.4, .05); if (X(p0, p1, .4)) FX.whoosh(1.2, false, .08); if (X(p0, p1, .7)) FX.ping(990, .06, 1.8); } },
+  { en: 'Sand', zh: '沙', dur: 4.6, mat: 'GRAVITY · 重力',
+    note: p => p < .8 ? '重力打开。从最底下那一粒开始，月亮落了一地。' : '沙丘慢慢化开。',
     draw(ctx, e) {
-      const { S, p, lt, dur } = e, G = DATA.G, melt = eio(seg(p, .8, .98));
+      const { S, p, dur } = e, G = DATA.G, melt = eio(seg(p, .8, .98));
       for (const q of DATA.parts) {
         let x = q.tx, y = q.ty;
         const tau = (p - q.ti) * dur;
@@ -599,14 +782,14 @@ const STATES = [
           if (yy >= q.yl) { x = q.xl; y = q.yl; } else { y = yy; x = lerp(q.tx, q.xl, (yy - q.ty) / (q.yl - q.ty)); }
         }
         if (melt > 0) { y = lerp(y, G, melt); x = lerp(x, .5 + (x - .5) * 1.06, melt); }
-        const r = q.r * S * (1 - melt * .85);
         ctx.fillStyle = melt > .4 ? '#8F8A80' : q.col;
-        ctx.beginPath(); ctx.arc(x * S, y * S, r, 0, TAU); ctx.fill();
+        ctx.beginPath(); ctx.arc(x * S, y * S, q.r * S * (1 - melt * .85), 0, TAU); ctx.fill();
       }
       if (melt > 0) { ctx.strokeStyle = `rgba(94,90,82,${melt})`; ctx.lineWidth = 3 * e.u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(S * .1, G * S); ctx.lineTo(S * .9, G * S); ctx.stroke(); }
-    } },
-  { en: 'Ripple', zh: '涟漪', dur: 4.8,
-    note: p => p < .16 ? '一滩银色的水。' : p < .36 ? '水往天上流。' : p < .8 ? '一圈，两圈，三十六圈。' : '波纹停下来的地方，是月亮。',
+    },
+    sfx(p0, p1) { if (X(p0, p1, .06)) FX.hiss(3.2, .08); if (X(p0, p1, .82)) FX.bloop(); } },
+  { en: 'Ripple', zh: '涟漪', dur: 5, mat: 'WATER · 水',
+    note: p => p < .16 ? '一滩银色的水，缩成一滴。' : p < .36 ? '水往天上流。' : p < .8 ? '一圈，两圈，三十六圈。' : '波纹停下来的地方，是月亮。',
     draw(ctx, e) {
       const { S, C, R, u, p } = e, G = DATA.G * S;
       const a = eio(seg(p, 0, .16)), b = eio(seg(p, .16, .36));
@@ -626,11 +809,12 @@ const STATES = [
       for (let k = 0; k < K_RINGS; k++) {
         const tk = .36 + k * .012, g = seg(p, tk, tk + .22); if (g <= 0) continue;
         const rr = R * (1 - k / K_RINGS) * eout(g); if (rr < 1) continue;
-        varLine(ctx, ringPts(e, rr, m > 0, m), true);
+        varLine(ctx, ringPts(e, rr, m), true);
       }
-    } },
-  { en: 'Unravel', zh: '拆线', dur: 4.6,
-    note: p => p < .16 ? '三十六圈波纹，其实是一根线。' : p < .9 ? '找到线头，轻轻一拉。' : '整颗月亮，变成桌上的一根线。',
+    },
+    sfx(p0, p1) { if (X(p0, p1, .16)) FX.drip(); if (X(p0, p1, .36)) FX.plip(); if (X(p0, p1, .78)) FX.ping(523, .05, 2.2); } },
+  { en: 'Unravel', zh: '拆线', dur: 4.6, mat: 'THREAD · 线',
+    note: p => p < .16 ? '三十六圈波纹，其实是同一根线。' : p < .9 ? '找到线头，轻轻一拉。' : '整颗月亮，变成桌上的一根线。',
     draw(ctx, e) {
       const { S, C, R, u, p } = e, G = DATA.G * S;
       const w = eio(seg(p, 0, .14)), un = eio(seg(p, .16, .88)), rot = un * TAU * 2.2, drop = eio(seg(p, .9, 1));
@@ -638,28 +822,29 @@ const STATES = [
       for (let i = Math.floor(un * n); i <= n; i++) {
         const s = i / n, th = s * K_RINGS * TAU, kk = Math.min(K_RINGS - 1, Math.floor(s * K_RINGS));
         const rr = lerp(R * (1 - kk / K_RINGS), R * (1 - s), w); if (rr < .5) break;
-        const cx = Math.cos(th), sy = Math.sin(th), dk = dkAt(rr / R * cx, -rr / R * sy);
-        const a2 = th + rot;
+        const dk = dkAt(rr / R * Math.cos(th), -rr / R * Math.sin(th)), a2 = th + rot;
         pts.push([C + rr * Math.cos(a2), C + rr * Math.sin(a2), S * (.0011 + .0052 * dk) + .4]);
       }
       ctx.strokeStyle = 'rgba(27,26,23,.88)';
       if (pts.length > 1) varLine(ctx, pts, false);
       if (p > .15) {
-        const h = pts[0] || [C, C];
-        const hx = h[0], hy = lerp(h[1], G, drop);
+        const h = pts[0] || [C, C], hx = h[0], hy = lerp(h[1], G, drop);
         ctx.strokeStyle = INK; ctx.lineWidth = 1.8 * u; ctx.lineCap = 'round';
         ctx.beginPath(); ctx.moveTo(hx, hy);
         ctx.bezierCurveTo(hx + S * .14, lerp(hy, G, .2), S * .72, G, S * .84, G); ctx.lineTo(S * 1.05, G); ctx.stroke();
       }
-    } },
-  { en: 'Scribble', zh: '乱画', dur: 4.4,
+    },
+    sfx(p0, p1) { if (X(p0, p1, .16)) { FX.pluck(196); FX.zip(3.2); } if (X(p0, p1, .5)) FX.pluck(247); if (X(p0, p1, .9)) FX.pluck(147); } },
+  { en: 'Scribble', zh: '乱画', dur: 4.2, mat: 'CHAOS · 混沌',
     note: p => p > .44 && p < .56 ? '月亮！' : p < .88 ? '混乱，月亮，混乱。' : '乱到最后，写成了一个字。',
     draw(ctx, e) {
       const { S, C, R, u, p, f } = e, G = DATA.G * S;
+      const tx = C + 9 * PCW * S, ty = C - 3 * PCH * S;
       const lineOut = seg(p, 0, .12);
       if (lineOut < 1) { ctx.strokeStyle = INK; ctx.lineWidth = 1.8 * u; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(C, G); ctx.lineTo(lerp(S * 1.05, C, lineOut), G); ctx.stroke(); }
-      if (p >= .9) { ctx.fillStyle = INK; ctx.font = ZH(600, S * .06); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('月', C, C); ctx.textAlign = 'left'; return; }
-      const q = eio(seg(p, .04, .3)), w = eio(seg(p, .32, .44)) * (1 - eio(seg(p, .56, .68))), k = 1 - .88 * eio(seg(p, .7, .88));
+      if (p >= .9) { ctx.fillStyle = INK; ctx.font = ZH(600, PFS * S); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('明', tx, ty); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; return; }
+      const q = eio(seg(p, .04, .3)), w = eio(seg(p, .32, .44)) * (1 - eio(seg(p, .56, .68)));
+      const kk = eio(seg(p, .7, .88)), k = 1 - .95 * kk, pvx = lerp(C, tx, kk), pvy = lerp(C, ty, kk);
       const n = 640, m = Math.max(2, Math.floor(n * q));
       ctx.strokeStyle = INK; ctx.lineWidth = 1.6 * u; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
       ctx.beginPath();
@@ -668,124 +853,148 @@ const STATES = [
       for (let i = 0; i <= m; i++) {
         const s = i / n, [cx, cy] = chaos(s, f, e);
         const ox = C + R * Math.sin(TAU * s), oy = C - R * Math.cos(TAU * s);
-        const spin = (1 - k) * 4;
-        let x = lerp(cx, ox, w) - C, y = lerp(cy, oy, w) - C;
+        const spin = kk * 4;
+        const x = lerp(cx, ox, w) - C, y = lerp(cy, oy, w) - C;
         const xr = x * Math.cos(spin) - y * Math.sin(spin), yr = x * Math.sin(spin) + y * Math.cos(spin);
-        hx = C + xr * k; hy = C + yr * k;
+        hx = pvx + xr * k; hy = pvy + yr * k;
         (i || q < 1) ? ctx.lineTo(hx, hy) : ctx.moveTo(hx, hy);
       }
       ctx.stroke();
       if (q < 1) penDot(ctx, hx, hy, e);
-    } },
-  { en: 'Type', zh: '月月月', dur: 4.8,
-    note: p => p < .1 ? '月。' : p < .18 ? '月月。' : p < .72 ? '几百个「月」字。' : '墨浓的地方，是月海。',
+    },
+    sfx(p0, p1) { if (X(p0, p1, .04)) FX.scratch(1.1); if (X(p0, p1, .44)) FX.ding(); if (X(p0, p1, .56)) FX.scratch(.6); if (X(p0, p1, .9)) FX.key(.09); } },
+  { en: 'Poem', zh: '诗', dur: 8.4, mat: 'POETRY · 诗',
+    note: p => p < .34 ? '明月几时有？苏轼，丙辰中秋，1076 年。' : p < .84 ? '九百五十年后，这首诗重新排成一轮月亮。' : '「月有阴晴圆缺」：最早的一份月亮状态清单。',
     draw(ctx, e) {
-      const { S, C, p } = e, cells = DATA.cells;
-      const count = p < .1 ? 1 : p < .18 ? 2 : p < .24 ? 3 : 3 + Math.floor((cells.length - 3) * Math.pow(seg(p, .24, .72), 1.6));
-      const m = ss(.72, .92, p), cs = DATA.cell * S;
+      const { S, p, f } = e, cs = DATA.pcell * S, cells = DATA.pcells, n = cells.length, NP = POEM.length;
+      const typed = 1 + Math.floor(seg(p, .02, .3) * (NP - 1));
+      const m = ss(.66, .82, p), hlOn = p > .86 && !(p < .9 && f % 2);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      for (let i = 0; i < count; i++) {
+      for (let i = 0; i < n; i++) {
         const c = cells[i];
-        const size = i === 0 ? lerp(S * .06, cs * .92, eio(seg(p, .02, .1))) : cs * .92;
+        let x = c.x * S, y = c.y * S, size = cs * .9;
+        if (i < NP) {
+          if (i >= typed) continue;
+          const b = DATA.blk[i], d = i / NP * .14, mv = eio(seg(p, .36 + d, .52 + d));
+          x = lerp(b.x * S, x, mv); y = lerp(b.y * S, y, mv); size = lerp(PFS * S, size, mv);
+        } else if (p < .46 + (i - NP) / (n - NP) * .2) continue;
         ctx.font = ZH(600, size);
-        ctx.fillStyle = m <= 0 ? INK : rgb([27, 26, 23], [lerp(27, 180, 1 - c.dk), lerp(26, 174, 1 - c.dk), lerp(23, 162, 1 - c.dk)], m);
-        ctx.fillText('月', c.x * S, c.y * S + size * .04);
+        ctx.fillStyle = c.hl && hlOn ? RED : m <= 0 ? INK : rgb([27, 26, 23], [lerp(27, 180, 1 - c.dk), lerp(26, 174, 1 - c.dk), lerp(23, 162, 1 - c.dk)], m);
+        ctx.fillText(c.ch, x, y + size * .04);
       }
-      ctx.textAlign = 'left';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    },
+    sfx(p0, p1) {
+      const t = p => Math.floor(seg(p, .02, .3) * 94 / 3);
+      if (t(p0) !== t(p1)) FX.key(.04);
+      if (X(p0, p1, .36)) FX.whoosh(2.2, true, .06);
+      if (X(p0, p1, .66)) FX.pad(4, .03);
+      if (X(p0, p1, .86)) FX.bell(392);
     } },
-  { en: 'Resolution', zh: '分辨率', dur: 4.8,
+  { en: 'Resolution', zh: '分辨率', dur: 4.6, mat: 'PIXEL · 像素',
     note: p => p < .8 ? '从 4K，到一个像素。' : '最后，只剩一个像素。',
     draw(ctx, e) {
       const { S, C, R, p } = e;
       ctx.textBaseline = 'alphabetic';
       if (p < .12) {
-        const cs = DATA.cell * S;
-        for (const c of DATA.cells) { ctx.fillStyle = c.ink; ctx.fillRect(c.x * S - cs / 2, c.y * S - cs / 2, cs + .5, cs + .5); }
+        const cs = DATA.pcell * S;
+        for (const c of DATA.pcells) { ctx.fillStyle = c.ink; ctx.fillRect(c.x * S - cs / 2, c.y * S - cs / 2, cs + .5, cs + .5); }
       } else if (p < .8) {
-        const [label, n] = resAt(p);
+        const n = RES[resIdx(p)][1];
         if (!n) moonImg(ctx, FULL.paper, e);
         else { ctx.imageSmoothingEnabled = false; moonImg(ctx, pixelated(n), e); ctx.imageSmoothingEnabled = true; }
       } else {
         const sz = lerp(2 * R, S * .018, eio(seg(p, .82, .95)));
         ctx.fillStyle = pixelated(1)._avg; ctx.fillRect(C - sz / 2, C - sz / 2, sz, sz);
       }
-      const label = p < .12 ? '25 PX' : p < .8 ? resAt(p)[0] : '1 PX';
+      const label = p < .12 ? `${PGRID} PX` : p < .8 ? RES[resIdx(p)][0] : '1 PX';
       ctx.font = MONO(S * .02); ctx.fillStyle = INK; ctx.textAlign = 'center'; track(ctx, S * .003);
       ctx.fillText(label, C, C + R + S * .062); track(ctx, 0); ctx.textAlign = 'left';
-    } },
-  { en: 'Loading', zh: '加载中', dur: 5.2,
+    },
+    sfx(p0, p1) { if (X(p0, p1, .12)) FX.ding(); if (resIdx(p0) !== resIdx(p1) && p1 < .8) FX.blip(1600 - resIdx(p1) * 120, .04); if (X(p0, p1, .82)) tone({ f: 400, f2: 1600, dur: .3, vol: .05, type: 'square' }); } },
+  { en: 'Loading', zh: '加载中', dur: 5.2, mat: 'WAITING · 等待',
     note: p => p < .76 ? '正在加载今晚的月亮……' : '今晚的月亮，永远差一点才圆。',
     draw(ctx, e) {
-      const { S, C, R, u, p, f } = e;
+      const { S, C, R, u, p, F } = e;
       const a = eio(seg(p, 0, .1)), b = eio(seg(p, .1, .16));
       if (p < .16) {
-        const sz = lerp(S * .018, 5 * u, a), rad = lerp(0, sz / 2, a);
+        const sz = lerp(S * .018, 5 * u, a), rad = lerp(0, sz / 2, a), y = lerp(C, C - R, b);
         ctx.fillStyle = a < .5 ? pixelated(1)._avg : INK;
-        const y = lerp(C, C - R, b);
         ctx.beginPath(); ctx.roundRect ? ctx.roundRect(C - sz / 2, y - sz / 2, sz, sz, rad) : ctx.rect(C - sz / 2, y - sz / 2, sz, sz); ctx.fill();
         return;
       }
-      const pct = pctAt(p);
-      const end = -Math.PI / 2 + TAU * pct / 100;
+      const pct = pctAt(p), end = -Math.PI / 2 + TAU * pct / 100;
       ctx.strokeStyle = INK; ctx.lineWidth = 3.4 * u; ctx.lineCap = 'round';
       if (pct > 0) { ctx.beginPath(); ctx.arc(C, C, R, -Math.PI / 2, end); ctx.stroke(); }
       penDot(ctx, C + R * Math.cos(end), C + R * Math.sin(end), e);
-      if (pct >= 99 && p > .76 && (f % 12) < 7) { ctx.strokeStyle = RED; ctx.lineCap = 'butt'; ctx.beginPath(); ctx.arc(C, C, R, end + .018, Math.PI * 1.5 - .018); ctx.stroke(); ctx.lineCap = 'round'; }
+      if (pct >= 99 && p > .76 && (F % 24) < 13) { ctx.strokeStyle = RED; ctx.lineCap = 'butt'; ctx.beginPath(); ctx.arc(C, C, R, end + .018, Math.PI * 1.5 - .018); ctx.stroke(); ctx.lineCap = 'round'; }
       ctx.font = `400 ${S * .062}px "IBM Plex Mono", ui-monospace, monospace`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(pct + '%', C, C); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-    } },
-  { en: 'Negative', zh: '负形', dur: 4.6,
-    note: p => p < .6 ? '满天的星，只空出一个圆。' : '没有画月亮。你还是看见了。',
+    },
+    sfx(p0, p1) { if (pctAt(p0) !== pctAt(p1) && pctAt(p1) < 99) FX.blip(800 + pctAt(p1) * 8, .025); if (X(p0, p1, .76)) FX.error(); if (X(p0, p1, .92)) FX.error(); } },
+  { en: 'Negative', zh: '负形', dur: 6, mat: 'NOTHING · 无',
+    note: p => p < .3 ? '那一圈进度条，碎成了星星。' : p < .55 ? '满天的星，只空出一个圆。' : '没有画月亮。你还是看见了。',
     draw(ctx, e) {
-      const { S, C, R, u, p } = e;
-      const er = eio(seg(p, 0, .14));
-      if (er < 1) {
-        ctx.strokeStyle = INK; ctx.lineWidth = 3.4 * u; ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.arc(C, C, R, -Math.PI / 2, -Math.PI / 2 + TAU * .99 * (1 - er)); ctx.stroke();
-        if (p < .05) { ctx.font = `400 ${S * .062}px "IBM Plex Mono", ui-monospace, monospace`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('99%', C, C); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; }
+      const { S, C, R, u, p } = e, st = DATA.stars;
+      if (p < .04) { ctx.font = `400 ${S * .062}px "IBM Plex Mono", ui-monospace, monospace`; ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('99%', C, C); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; }
+      const trail = .42 * eio(seg(p, .5, .97));
+      // 进度条碎成的第一批星
+      ctx.fillStyle = 'rgba(27,26,23,.9)';
+      for (let j = 0; j < NRING; j++) {
+        const s = st[j], a = -Math.PI / 2 + TAU * .99 * j / NRING, d = (1 - j / NRING) * .1, mv = eio(seg(p, .02 + d, .2 + d));
+        if (mv >= 1) continue;
+        const x = lerp(C + R * Math.cos(a), s.x * S, mv), y = lerp(C + R * Math.sin(a), s.y * S, mv);
+        ctx.beginPath(); ctx.arc(x, y, lerp(1.9 * u, Math.max(.45, s.sz * S), mv), 0, TAU); ctx.fill();
       }
-      drawStars(ctx, e, Math.floor(DATA.stars.length * eio(seg(p, .08, .6))));
-    } },
-  { en: 'Impostors', zh: '冒充者', dur: 6.4,
-    note: p => { if (p < OBJ_T0) return '月亮一直在假装自己是月亮。'; const o = OBJECTS[objAt(p)]; return `${o[0]} ${o[1]} · 同一个圆的位置。`; },
+      const landed = Math.min(NRING, Math.floor(NRING * seg(p, .2, .3)));
+      drawStars(ctx, e, NRING, trail, 1, NRING - landed);
+      drawStars(ctx, e, NRING + Math.floor((st.length - NRING) * eio(seg(p, .2, .52))), trail, 1, NRING);
+    },
+    sfx(p0, p1) { if (X(p0, p1, .02)) FX.shatter(); if (X(p0, p1, .5)) FX.pad(6, .035); } },
+  { en: 'Impostors', zh: '冒充者', dur: 8.4, mat: 'THINGS · 物',
+    dark: p => p > .92,
+    note: p => { if (p < .05) return '月亮一直在假装自己是月亮。'; const o = OBJECTS[objAt(p)]; if (o[1] === 'MOON GATE' && p > .82) return '月洞门。原来那个圆，一直是一扇门。'; return `${o[0]} ${o[1]} · 同一个圆的位置。`; },
     draw(ctx, e) {
       const { p } = e;
-      if (p < OBJ_T0) { drawStars(ctx, e, Math.floor(DATA.stars.length * (1 - seg(p, 0, OBJ_T0)))); return; }
-      const i = objAt(p), span = (OBJ_T1 - OBJ_T0) / OBJECTS.length;
-      const sub = Object.assign({}, e, { lt: (p - OBJ_T0 - i * span) * e.dur });
-      OBJECTS[i][2](ctx, sub);
+      if (p < .05) { drawStars(ctx, e, DATA.stars.length, .42, Math.round((1 - seg(p, 0, .05)) * 4) / 4); return; }
+      const i = objAt(p), o = OBJECTS[i];
+      const sub = Object.assign({}, e, { lt: (p - o[2]) * e.dur });
+      o[4](ctx, sub, seg(p, o[2], o[3]), p);
+    },
+    sfx(p0, p1) {
+      const o = OBJECTS;
+      for (let i = 1; i < o.length; i++) if (X(p0, p1, o[i][2])) FX.click();
+      [.05 + .13 * .7 * .36, .05 + .13 * .7 * .73, .05 + .13 * .7 * .91].forEach((t, k) => { if (X(p0, p1, t)) FX.clink(.12 / (k + 1)); });
+      if (X(p0, p1, .25)) FX.crackle(.6);
+      if (X(p0, p1, .84)) { FX.whoosh(1.4, true, .1); FX.pad(9, .06); }
     } },
-  { en: 'Moon', zh: '月亮', dur: 9, dark: true,
-    note: p => p < .45 ? '关灯。十五的月亮。' : '1001 不是数量，是一句承诺。',
+  { en: 'Moon', zh: '月亮', dur: 12, dark: true, mat: 'MOON · 月',
+    note: p => p < .3 ? '十五的月亮。' : p < .62 ? '1001 不是数量，是一句承诺。' : '最后，月亮变回一个句号。',
     draw(ctx, e) {
-      const { S, C, R, lt, p, f } = e;
-      const fr = Math.floor(lt * FPS);
-      if (fr < 2) return;
-      const a = [.12, .3, .55, .8, 1][Math.min(4, Math.floor((fr - 2) / 2))];
-      const g = ctx.createRadialGradient(C, C, R * .9, C, C, R * 3.2);
-      g.addColorStop(0, `rgba(255,236,200,${.2 * a})`); g.addColorStop(.3, `rgba(255,236,200,${.05 * a})`); g.addColorStop(1, 'rgba(255,236,200,0)');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
-      ctx.globalAlpha = a * (.985 + .015 * hash(f));
-      moonImg(ctx, FULL.night, e);
-      ctx.globalAlpha = 1;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-      const l1 = 'To be continued.', l2 = '我们永远没有把月亮看完。';
-      const n1 = Math.floor(seg(p, .46, .6) * l1.length), n2 = Math.floor(seg(p, .6, .76) * l2.length);
-      if (n1) { ctx.font = SERIF(S * .036); ctx.fillStyle = '#E4DBC6'; ctx.textAlign = 'left'; const w = ctx.measureText(l1).width; typeOn(ctx, l1, n1, C - w / 2, C + R + S * .082); }
-      if (n2) { ctx.font = ZH(400, S * .021); ctx.fillStyle = '#958D7E'; ctx.textAlign = 'left'; const w = ctx.measureText(l2).width; typeOn(ctx, l2, n2, C - w / 2, C + R + S * .124); }
-      ctx.textAlign = 'left';
+      const { S, C, R, p, lt } = e;
+      const sh = eio(seg(p, .62, .82));
+      for (const s of DATA.nstars) { const a = (.25 + .3 * Math.sin(lt * s.sp + s.ph)) * (1 - sh * .5); ctx.fillStyle = `rgba(240,232,215,${a})`; ctx.beginPath(); ctx.arc(s.x * S, s.y * S, s.sz * S, 0, TAU); ctx.fill(); }
+      const fs2 = S * lerp(.022, .03, sh), l1 = 'To be continued.', l2 = '我们永远没有把月亮看完';
+      ctx.font = ZH(400, fs2); const w2 = ctx.measureText(l2).width, x2 = C - (w2 + fs2 * .7) / 2;
+      const y1 = lerp(C + R + S * .085, C - S * .012, sh), y2 = lerp(C + R + S * .128, C + S * .044, sh);
+      const px = x2 + w2 + fs2 * .27, py = y2 - fs2 * .15;
+      const rr = R * Math.pow(fs2 * .14 / R, sh), mx = lerp(C, px, sh), my = lerp(C, py, sh);
+      nightMoon(ctx, e, mx, my, rr, 1);
+      const n1 = Math.floor(seg(p, .3, .4) * l1.length), n2 = Math.floor(seg(p, .44, .58) * l2.length);
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      if (n1) { ctx.font = SERIF(S * lerp(.036, .05, sh)); ctx.fillStyle = '#E4DBC6'; const w = ctx.measureText(l1).width; typeOn(ctx, l1, n1, C - w / 2, y1); }
+      if (n2) { ctx.font = ZH(400, fs2); ctx.fillStyle = '#A39A89'; typeOn(ctx, l2, n2, x2, y2); }
+    },
+    sfx(p0, p1) {
+      if (X(p0, p1, .3)) FX.roll();
+      const k = p => Math.floor(seg(p, .3, .4) * 16) + Math.floor(seg(p, .44, .58) * 11);
+      if (k(p0) !== k(p1)) FX.key(.035);
+      if (X(p0, p1, .62)) FX.whoosh(2.4, false, .07);
+      if (X(p0, p1, .82)) FX.ping(1760, .07, 2.4);
+      if (X(p0, p1, .86)) FX.thud();
     } },
 ];
 STATES.forEach((s, i) => { s.num = i + 1; s.tl = 'MOON ' + pad(i + 1, 3); });
-
-function drawStars(ctx, e, count) {
-  const { S } = e;
-  ctx.fillStyle = 'rgba(27,26,23,.86)';
-  const st = DATA.stars;
-  for (let i = 0; i < count; i++) { const s = st[i]; ctx.beginPath(); ctx.arc(s.x * S, s.y * S, Math.max(.45, s.sz * S), 0, TAU); ctx.fill(); }
-  ctx.strokeStyle = 'rgba(27,26,23,.7)'; ctx.lineWidth = Math.max(.5, S * .0008);
-  for (let i = 0; i < count; i++) { const s = st[i]; if (!s.spark) continue; const l = s.sz * S * 4.5; ctx.beginPath(); ctx.moveTo(s.x * S - l, s.y * S); ctx.lineTo(s.x * S + l, s.y * S); ctx.moveTo(s.x * S, s.y * S - l); ctx.lineTo(s.x * S, s.y * S + l); ctx.stroke(); }
-}
 
 /* ============================================================
    印版：纸 / 颗粒 / 暗角 / 版面文字 HUD
@@ -799,31 +1008,29 @@ const GRAIN = [0, 1, 2].map(s => {
   return c;
 });
 const patterns = new WeakMap();
+const isDark = (st, p) => typeof st.dark === 'function' ? st.dark(p) : !!st.dark;
 
-function drawPlate(ctx, S, st, p, f, lt, opts) {
-  const dark = !!st.dark;
-  const e = { S, C: S / 2, R: S * RU, u: S / 1000, p, f, lt, dur: st.dur, dpr: opts.dpr, cache: opts.cache };
+function drawPlate(ctx, S, st, p, f, F, lt, opts) {
+  const dark = isDark(st, p);
+  const e = { S, C: S / 2, R: S * RU, u: S / 1000, p, f, F, lt, dur: st.dur, dpr: opts.dpr, cache: opts.cache };
   ctx.fillStyle = dark ? NIGHT : PAPER; ctx.fillRect(0, 0, S, S);
-  // 定格抖动：每一帧都有一点点不同
+  // 手作的抖动：每 1/12 秒换一次
   ctx.save();
-  const j = opts.still ? 0 : 1;
-  ctx.translate(e.C, e.C); ctx.rotate((hash(f * 7.7) - .5) * .0035 * j);
-  ctx.translate(-e.C + (hash(f * 3.1) - .5) * S * .0022 * j, -e.C + (hash(f * 5.3) - .5) * S * .0022 * j);
+  ctx.translate(e.C, e.C); ctx.rotate((hash(f * 7.7) - .5) * .003);
+  ctx.translate(-e.C + (hash(f * 3.1) - .5) * S * .002, -e.C + (hash(f * 5.3) - .5) * S * .002);
   st.draw(ctx, e);
   ctx.restore();
-  // 暗角 + 颗粒
   const v = ctx.createRadialGradient(e.C, e.C, S * .3, e.C, e.C, S * .78);
   v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, dark ? 'rgba(0,0,0,.4)' : 'rgba(90,70,40,.1)');
   ctx.fillStyle = v; ctx.fillRect(0, 0, S, S);
   let pats = patterns.get(ctx); if (!pats) { pats = GRAIN.map(g => ctx.createPattern(g, 'repeat')); patterns.set(ctx, pats); }
   ctx.save(); ctx.translate((f * 37) % 220, (f * 53) % 220); ctx.fillStyle = pats[f % 3]; ctx.globalAlpha = dark ? .7 : 1; ctx.fillRect(-220, -220, S + 440, S + 440); ctx.restore();
-  if (opts.hud) hud(ctx, e, st, opts);
+  if (opts.hud) hud(ctx, e, st, opts, dark);
 }
 
-function hud(ctx, e, st, opts) {
-  const { S, p } = e, dark = !!st.dark, fg = dark ? '#E9E2D0' : INK, sub = dark ? '#8E877A' : GRAPH, m = S * .045;
+function hud(ctx, e, st, opts, dark) {
+  const { S, p } = e, fg = dark ? '#E9E2D0' : INK, sub = dark ? '#8E877A' : GRAPH, m = S * .045;
   ctx.textBaseline = 'alphabetic';
-  // 裁切标记
   ctx.strokeStyle = sub; ctx.globalAlpha = .55; ctx.lineWidth = 1;
   const cm = S * .018, cl = S * .016;
   [[cm, cm, 1, 1], [S - cm, cm, -1, 1], [cm, S - cm, 1, -1], [S - cm, S - cm, -1, -1]].forEach(([x, y, dx, dy]) => { ctx.beginPath(); ctx.moveTo(x + dx * cl, y); ctx.lineTo(x, y); ctx.lineTo(x, y + dy * cl); ctx.stroke(); });
@@ -832,28 +1039,29 @@ function hud(ctx, e, st, opts) {
   ctx.font = MONO(ms); ctx.fillStyle = fg; track(ctx, ms * .16);
   ctx.textAlign = 'left'; ctx.fillText(st.tl, m, m + ms * .7);
   ctx.textAlign = 'right'; ctx.fillText('1001 STATES OF THE MOON', S - m, m + ms * .7);
-  // 计数：最后 15 / 15 翻成 15 / 1001
   let counter = pad(st.num, 2) + ' / 15';
-  if (st.num === 15 && p > .48) counter = '15 / ' + Math.round(lerp(15, 1001, eio(seg(p, .48, .56))));
+  if (st.num === 15 && p > .3) counter = '15 / ' + Math.round(lerp(15, 1001, eio(seg(p, .3, .36))));
   ctx.fillText(counter, S - m, S - m);
   const tc = opts.tc; ctx.fillStyle = sub;
   ctx.fillText(`${pad(Math.floor(tc / 60), 2)}:${pad(Math.floor(tc) % 60, 2)}:${pad(Math.floor(tc * FPS) % FPS, 2)}`, S - m, S - m - ms * 1.9);
-  track(ctx, 0); ctx.textAlign = 'left';
-  // 状态名
+  ctx.textAlign = 'left';
+  if (st.num) {
+    ctx.font = MONO(ms * .8); ctx.fillText('MATERIAL', m, m + ms * 2.5); const wl = ctx.measureText('MATERIAL').width; track(ctx, 0);
+    const [en, zh] = st.mat.split(' · '); ctx.font = ZH(400, ms * .95); ctx.fillText(zh + '  ' + en, m + wl + ms * .8, m + ms * 2.5);
+  } else { track(ctx, 0); ctx.font = ZH(400, ms * .95); ctx.fillText(st.mat, m, m + ms * 2.5); }
   const ns = S * .056;
   ctx.font = SERIF(ns); ctx.fillStyle = fg; ctx.fillText(st.en, m - ns * .03, S - m - S * .034);
   const w = ctx.measureText(st.en).width;
   ctx.font = ZH(500, S * .024); ctx.fillText(st.zh, m + w + S * .014, S - m - S * .034);
   ctx.font = ZH(400, Math.max(10, S * .0185)); ctx.fillStyle = sub; ctx.fillText(st.note(p), m, S - m);
-  // 印章
-  if (st.num === 15 && p > .8) {
-    const k = Math.floor((p - .8) * st.dur * FPS), sc = [1.3, 1.1, 1][Math.min(2, k)], sz = S * .058 * sc;
+  if (st.num === 15 && p > .86) {
+    const k = Math.floor((p - .86) * st.dur * FPS / 2), sc = [1.3, 1.1, 1][Math.min(2, k)], sz = S * .058 * sc;
     const x = S - m - sz, y = m + ms * 1.9;
     ctx.fillStyle = RED; ctx.fillRect(x, y, sz, sz);
     ctx.fillStyle = '#F1E6D6'; ctx.font = ZH(700, sz * .36); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     [['丙', .72, .3], ['午', .72, .72], ['中', .28, .3], ['秋', .28, .72]].forEach(([t, a, b]) => ctx.fillText(t, x + a * sz, y + b * sz));
     ctx.fillStyle = RED; const r = mulberry(9); for (let i = 0; i < 26; i++) ctx.fillRect(x + r() * sz, y + r() * sz, 1.2, 1.2);
-    ctx.fillStyle = NIGHT; for (let i = 0; i < 10; i++) ctx.fillRect(x + (r() > .5 ? 0 : sz - 1.4) , y + r() * sz, 1.4, 1.6);
+    ctx.fillStyle = NIGHT; for (let i = 0; i < 10; i++) ctx.fillRect(x + (r() > .5 ? 0 : sz - 1.4), y + r() * sz, 1.4, 1.6);
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
   }
 }
@@ -867,7 +1075,7 @@ const locate = t => { for (let i = 0; i < SEQ.length; i++) if (t < STARTS[i] + S
 
 const canvas = document.getElementById('plate'), ctx = canvas.getContext('2d');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let S = 600, dpr = 1, t = 0, playing = !reduce, mode = 'film', lastFrame = -1, last = performance.now(), tI = 0, lastIF = -1;
+let S = 600, dpr = 1, t = 0, prevT = 0, playing = !reduce, mode = 'film', lastFrame = -1, last = performance.now(), tI = 0, lastIF = -1;
 const filmCache = {};
 
 function size() {
@@ -880,33 +1088,44 @@ function size() {
   sizeIndex();
 }
 
+const trackEl = document.getElementById('track'), nowName = document.getElementById('nowName');
 function renderFilm() {
-  const f = Math.floor(t * FPS), tq = f / FPS, { i, lt, p } = locate(tq);
+  const F = Math.floor(t * FPS), tq = F / FPS, { i, lt, p } = locate(tq);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  drawPlate(ctx, S, SEQ[i], p, f, lt, { hud: true, dpr, tc: tq, cache: filmCache });
-  // 进度条
+  drawPlate(ctx, S, SEQ[i], p, Math.floor(tq * BOIL), F, lt, { hud: true, dpr, tc: tq, cache: filmCache });
   segs.forEach((el, k) => { el.classList.toggle('on', k === i); el.firstChild.style.width = (k < i ? 100 : k > i ? 0 : p * 100) + '%'; });
   const st = SEQ[i]; nowName.innerHTML = st.num ? `<b>${pad(st.num, 3)}</b> ${st.en} ${st.zh}` : `<b>${st.tl}</b> ${st.en}`;
 }
+function fireSfx(a, b) {
+  if (!SND.on || b <= a || b - a > .3) return;
+  const A = locate(a), B = locate(b);
+  if (A.i === B.i) SEQ[A.i].sfx?.(A.p, B.p);
+  else { SEQ[A.i].sfx?.(A.p, 1.0001); SEQ[B.i].sfx?.(-.0001, B.p); }
+}
 
-// 进度条：每个状态一段
-const trackEl = document.getElementById('track'), nowName = document.getElementById('nowName');
 const segs = SEQ.map((s, k) => {
   const b = document.createElement('button'); b.className = 'seg'; b.style.setProperty('--d', s.dur);
   b.setAttribute('aria-label', s.num ? `${pad(s.num, 3)} ${s.en} ${s.zh}` : '片头'); b.title = b.getAttribute('aria-label');
   b.appendChild(document.createElement('i'));
-  b.onclick = () => { jump(k); };
+  b.onclick = () => jump(k);
   trackEl.appendChild(b); return b;
 });
-function jump(k) { t = STARTS[Math.max(0, Math.min(SEQ.length - 1, k))] + .001; lastFrame = -1; if (mode !== 'film') setMode('film'); }
+function jump(k) { t = prevT = STARTS[Math.max(0, Math.min(SEQ.length - 1, k))] + .001; lastFrame = -1; if (mode !== 'film') setMode('film'); }
 
 const playBtn = document.getElementById('play');
-function setPlaying(v) { playing = v; if (playing && t >= TOTAL - .01) t = 0; playBtn.textContent = playing ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', playing ? '暂停' : '播放'); last = performance.now(); }
+function setPlaying(v) { playing = v; if (playing && t >= TOTAL - .01) t = prevT = 0; playBtn.textContent = playing ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', playing ? '暂停' : '播放'); last = performance.now(); }
 playBtn.onclick = () => setPlaying(!playing);
-document.getElementById('restart').onclick = () => { t = 0; lastFrame = -1; setPlaying(true); if (mode !== 'film') setMode('film'); };
+document.getElementById('restart').onclick = () => { t = prevT = 0; lastFrame = -1; setPlaying(true); if (mode !== 'film') setMode('film'); };
 canvas.onclick = () => setPlaying(!playing);
+const sndBtn = document.getElementById('snd');
+function setSound(v) {
+  if (v && !sndInit()) return;
+  SND.on = v; sndBtn.setAttribute('aria-pressed', v);
+  if (v && SND.ac.state === 'suspended') SND.ac.resume();
+  try { localStorage.setItem('moon-sound', v ? '1' : '0'); } catch (e) {}
+}
+sndBtn.onclick = () => setSound(!SND.on);
 
-/* 图鉴：十五个格子各自循环 */
 const indexEl = document.getElementById('index'), cells = [];
 STATES.forEach((s, k) => {
   const fig = document.createElement('figure'), c = document.createElement('canvas'), cap = document.createElement('figcaption');
@@ -926,11 +1145,11 @@ function sizeIndex() {
   lastIF = -1;
 }
 function renderIndex() {
-  const f = Math.floor(tI * FPS);
+  const F = Math.floor(tI * FPS);
   cells.forEach(o => {
-    const L = o.s.dur + .8, lt = ((tI + o.off) % L), p = Math.min(1, lt / o.s.dur), ff = f + (o.off * FPS | 0);
+    const L = o.s.dur + .8, lt = (tI + o.off) % L, p = Math.min(1, lt / o.s.dur);
     o.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawPlate(o.ctx, cellS, o.s, p, ff, Math.min(lt, o.s.dur), { hud: false, dpr, cache: o.cache });
+    drawPlate(o.ctx, cellS, o.s, p, Math.floor((tI + o.off) * BOIL), F, Math.min(lt, o.s.dur), { hud: false, dpr, cache: o.cache });
   });
 }
 function setMode(m) {
@@ -951,6 +1170,7 @@ addEventListener('keydown', ev => {
   if (ev.key === ' ') { ev.preventDefault(); setPlaying(!playing); }
   else if (ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') { const { i } = locate(t); jump(i + (ev.key === 'ArrowRight' ? 1 : -1)); }
   else if (ev.key === 'i' || ev.key === 'I') setMode(mode === 'film' ? 'index' : 'film');
+  else if (ev.key === 'm' || ev.key === 'M') setSound(!SND.on);
 });
 
 function loop(now) {
@@ -958,11 +1178,11 @@ function loop(now) {
   const dt = Math.min(.1, (now - last) / 1000); last = now;
   if (!DATA) return;
   if (mode === 'film') {
-    if (playing) { t += dt; if (t >= TOTAL) { t = TOTAL - .001; setPlaying(false); } }
-    const f = Math.floor(t * FPS); if (f !== lastFrame) { lastFrame = f; renderFilm(); }
+    if (playing) { prevT = t; t += dt; if (t >= TOTAL) { t = TOTAL - .001; setPlaying(false); } fireSfx(prevT, t); }
+    const F = Math.floor(t * FPS); if (F !== lastFrame) { lastFrame = F; renderFilm(); }
   } else {
     if (!reduce) tI += dt;
-    const f = Math.floor(tI * FPS); if (f !== lastIF) { lastIF = f; renderIndex(); }
+    const F = Math.floor(tI * FPS); if (F !== lastIF) { lastIF = F; renderIndex(); }
   }
 }
 
@@ -991,16 +1211,19 @@ async function boot() {
   FULL.paper = renderShade(M, 0, STYLE_PAPER, M.D, mk(M.D));
   FULL.night = renderShade(M, 0, STYLE_NIGHT, M.D, mk(M.D));
   DATA = initData();
-  if (reduce) t = STARTS[SEQ.length - 1] + 7;
+  if (reduce) t = STARTS[SEQ.length - 1] + 3;
   const hs = /^#(\d{1,2})$/.exec(location.hash); if (hs) t = STARTS[Math.min(SEQ.length - 1, +hs[1])] + .001;
   const q = new URLSearchParams(location.search); if (q.has('t')) { t = +q.get('t'); playing = false; }
+  prevT = t;
   setPlaying(playing);
   last = performance.now(); requestAnimationFrame(loop);
 }
 let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => { size(); if (!DATA) splash('DEVELOPING THE PLATE · 显影中'); }, 120); });
+// 浏览器要求用户先点一下才能出声；第一次点画面时顺带打开声音
+let sndPref = null; try { sndPref = localStorage.getItem('moon-sound'); } catch (e) {}
+if (sndPref !== '0') addEventListener('pointerdown', function once(ev) { if (ev.target === sndBtn) return; removeEventListener('pointerdown', once); if (!SND.on) setSound(true); });
 boot();
 })();
 </script>
-
 </body>
 </html>
